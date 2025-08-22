@@ -1,11 +1,13 @@
 package rs.ac.uns.walletapp.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.io.Serializable;
-
+@Getter
+@Setter
 @Entity
-public class Category implements Serializable {
+public class Category{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -22,12 +24,5 @@ public class Category implements Serializable {
     private User user;
 
     public Category() {}
-    public Category(String name, Type type, boolean predefined, User user) {
-        this.name = name;
-        this.type = type;
-        this.predefined = predefined;
-        this.user = user;
-        if(predefined) this.user = null;
 
-    }
 }

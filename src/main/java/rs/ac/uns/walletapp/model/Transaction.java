@@ -1,11 +1,13 @@
 package rs.ac.uns.walletapp.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.io.Serializable;
-
+@Getter
+@Setter
 @Entity
-public class Transaction implements Serializable {
+public class Transaction{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -19,7 +21,6 @@ public class Transaction implements Serializable {
     private Category category;
     private boolean repeatable;
     private String frequency;
-    private Wallet wallet;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
@@ -27,14 +28,5 @@ public class Transaction implements Serializable {
 
     public Transaction() {}
 
-    public Transaction(String name, double amount, Type type, Category category, boolean repeatable, String frequency, Wallet wallet, User user) {
-        this.name = name;
-        this.amount = amount;
-        this.type = type;
-        this.category = category;
-        this.repeatable = repeatable;
-        this.frequency = frequency;
-        this.wallet = wallet;
-        this.user = user;
-    }
+
 }

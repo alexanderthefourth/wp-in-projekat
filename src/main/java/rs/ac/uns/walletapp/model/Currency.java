@@ -1,23 +1,18 @@
 package rs.ac.uns.walletapp.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.io.Serializable;
-import java.util.List;
-import java.time.LocalDate;
-
+@Getter
+@Setter
 @Entity
-public class Currency implements Serializable {
+public class Currency {
     @Id
     private String name;
     private double value;
 
     public Currency(){}
-
-    public Currency(String name, double value){
-        this.name = name;
-        this.value = value;
-    }
 
     public String getName() {return name;}
     public void setName(String name) {this.name = name;}
