@@ -16,7 +16,7 @@ public class Goal {
     private int id;
 
     private String name;
-    private BigDecimal savedAmount;
+
     private BigDecimal targetAmount;
     private LocalDate deadline;
 

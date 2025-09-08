@@ -1,5 +1,6 @@
 package rs.ac.uns.walletapp.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,18 +25,17 @@ public class Wallet{
     @JoinColumn(name = "curr_name")
     private Currency currency;
     private LocalDate creationDate;
-
-    private boolean savingsWallet;
     private boolean archived;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "wallet_id")
     private List<Transaction> transactions;
 
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private boolean savingsWallet;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "wallet_id")
-    private List<Goal> goals;
+    @Nullable
+    private Goal goal;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "wallet_id")
