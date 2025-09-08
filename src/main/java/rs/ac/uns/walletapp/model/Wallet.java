@@ -3,6 +3,8 @@ package rs.ac.uns.walletapp.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -15,8 +17,8 @@ public class Wallet{
     private int id;
 
     private String name;
-    private String initBal;
-    private String currBal;
+    private BigDecimal initBal;
+    private BigDecimal currBal;
 
     @ManyToOne
     @JoinColumn(name = "curr_name")
@@ -29,6 +31,20 @@ public class Wallet{
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "wallet_id")
     private List<Transaction> transactions;
+
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "wallet_id")
+    private List<Goal> goals;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "wallet_id")
+    private List<Transfer> outTransfers;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "wallet_id")
+    private List<Transfer> inTransfers;
+
     public Wallet(){}
 
 }

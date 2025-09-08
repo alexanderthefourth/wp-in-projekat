@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Entity
@@ -12,14 +15,17 @@ public class Transaction{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    private LocalDate dateOfExecution;
     private String name;
-    private double amount;
+    private BigDecimal amount;
     private Type type;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private Category category;
+
     private boolean repeatable;
+    private boolean activeRepeat;
     private String frequency;
 
     @ManyToOne(cascade = CascadeType.ALL)

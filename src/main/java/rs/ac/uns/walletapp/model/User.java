@@ -3,6 +3,7 @@ package rs.ac.uns.walletapp.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class User{
     @Column(unique = true)
     private String email;
     private String pwHash;
-
+    private String adminComment;
     private LocalDate birthDate;
     @Enumerated(EnumType.STRING)
     private Role role; //user, admin
