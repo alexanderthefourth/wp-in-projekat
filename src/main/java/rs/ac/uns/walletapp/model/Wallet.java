@@ -47,4 +47,11 @@ public class Wallet{
 
     public Wallet(){}
 
+    public Wallet(String name, BigDecimal initBal, Currency currency, boolean savingsWallet){
+        this.name = name;
+        this.initBal = initBal;
+        this.currency = currency;
+        this.savingsWallet = savingsWallet;
+    }
+
 }
