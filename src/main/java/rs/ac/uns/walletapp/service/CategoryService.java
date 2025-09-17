@@ -14,7 +14,7 @@ public class CategoryService {
     public CategoryService(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
-
+    /*
     public Category createCategory(Category category) {
         return categoryRepository.save(category);
     }
@@ -38,7 +38,7 @@ public class CategoryService {
 
     public void deleteCategory(int id) {
         categoryRepository.deleteById(id);
-    }
+    }*/
 
     public List<Category> getCategoriesForUser(int userId) {
         List<Category> categories = categoryRepository.findByPredefinedTrue();
@@ -60,5 +60,17 @@ public class CategoryService {
             categoryRepository.delete(category);
         }
     }
+
+    /*
+    public Category updateUserCategory(int userId, int categoryId, Category categoryDetails) {
+        Category category = categoryRepository.findById(categoryId).orElse(null);
+        if (category != null && !category.isPredefined() && category.getUser().getId() == userId) {
+            category.setName(categoryDetails.getName());
+            return categoryRepository.save(category);
+        }
+        return null;
+    }
+    */
+
 }
 

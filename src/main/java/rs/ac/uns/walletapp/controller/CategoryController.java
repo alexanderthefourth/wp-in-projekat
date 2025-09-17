@@ -15,6 +15,30 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
+
+    @GetMapping
+    public List<Category> getUserCategories(@RequestParam int userId) {
+        return categoryService.getCategoriesForUser(userId);
+    }
+
+    @PostMapping
+    public Category createCategory(@RequestParam int userId, @RequestBody Category category) {
+        return categoryService.createCategoryForUser(userId, category);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteCategory(@PathVariable int id, @RequestParam int userId) {
+        categoryService.deleteUserCategory(userId, id);
+    }
+
+    /*
+    @PutMapping("/{id}")
+    public Category updateCategory(@PathVariable int id, @RequestParam int userId, @RequestBody Category categoryDetails) {
+        return categoryService.updateUserCategory(userId, id, categoryDetails);
+    }
+    */
+
+    /*
     @GetMapping
     public List<Category> getAllCategories() {
         return categoryService.getAllCategories();
@@ -38,6 +62,6 @@ public class CategoryController {
     @DeleteMapping("/{id}")
     public void deleteCategory(@PathVariable int id) {
         categoryService.deleteCategory(id);
-    }
+    }*/
 }
 
