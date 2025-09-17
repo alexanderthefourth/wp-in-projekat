@@ -1,0 +1,8 @@
+###
+GET http://localhost:8080/api/admin/dashboard
+
+###
+GET http://localhost:8080/api/admin/transactions
+
+###
+GET http://localhost:8080/api/admin/transactions?userId=1&sortBy=amount&sortDir=desc
