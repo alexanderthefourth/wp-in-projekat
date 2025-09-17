@@ -14,31 +14,7 @@ public class CategoryService {
     public CategoryService(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
-    /*
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
-    }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
-    }
-
-    public Category getCategoryById(int id) {
-        return categoryRepository.findById(id).orElse(null);
-    }
-
-    public Category updateCategory(int id, Category categoryDetails) {
-        Category category = categoryRepository.findById(id).orElse(null);
-        if (category != null) {
-            category.setName(categoryDetails.getName());
-            return categoryRepository.save(category);
-        }
-        return null;
-    }
-
-    public void deleteCategory(int id) {
-        categoryRepository.deleteById(id);
-    }*/
 
     public List<Category> getCategoriesForUser(int userId) {
         List<Category> categories = categoryRepository.findByPredefinedTrue();
@@ -72,5 +48,31 @@ public class CategoryService {
     }
     */
 
+
+    /*
+    public Category createCategory(Category category) {
+        return categoryRepository.save(category);
+    }
+
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
+    }
+
+    public Category getCategoryById(int id) {
+        return categoryRepository.findById(id).orElse(null);
+    }
+
+    public Category updateCategory(int id, Category categoryDetails) {
+        Category category = categoryRepository.findById(id).orElse(null);
+        if (category != null) {
+            category.setName(categoryDetails.getName());
+            return categoryRepository.save(category);
+        }
+        return null;
+    }
+
+    public void deleteCategory(int id) {
+        categoryRepository.deleteById(id);
+    }*/
 }
 
