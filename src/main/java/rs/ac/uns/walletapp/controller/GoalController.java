@@ -1,7 +1,8 @@
 package rs.ac.uns.walletapp.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rs.ac.uns.walletapp.model.Goal;
+import rs.ac.uns.walletapp.dto.GoalDTO;
 import rs.ac.uns.walletapp.service.GoalService;
 
 import java.util.List;
@@ -16,27 +17,30 @@ public class GoalController {
     }
 
     @GetMapping
-    public List<Goal> getAllGoals() {
-        return goalService.getAllGoals();
+    public List<GoalDTO> getUserGoals(@RequestParam int userId) {
+        return goalService.getGoalsForUser(userId);
     }
 
     @GetMapping("/{id}")
-    public Goal getGoalById(@PathVariable int id) {
-        return goalService.getGoalById(id);
+    public ResponseEntity<GoalDTO> getGoalById(@PathVariable int id, @RequestParam int userId) {
+        GoalDTO goal = goalService.getGoalById(id, userId);
+        if (goal == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(goal);
     }
 
     @PostMapping
-    public Goal createGoal(@RequestBody Goal goal) {
-        return goalService.createGoal(goal);
-    }
-
-    @PutMapping("/{id}")
-    public Goal updateGoal(@PathVariable int id, @RequestBody Goal goalInfo) {
-        return goalService.updateGoal(id, goalInfo);
+    public GoalDTO createGoal(@RequestParam int userId, @RequestBody GoalDTO goalDTO) {
+        return goalService.createGoal(userId, goalDTO);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteGoal(@PathVariable int id) {
-        goalService.deleteGoal(id);
+    public ResponseEntity<Void> deleteGoal(@PathVariable int id, @RequestParam int userId) {
+        boolean deleted = goalService.deleteGoal(id, userId);
+        if (deleted) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }

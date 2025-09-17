@@ -20,5 +20,12 @@ public class Goal {
     private BigDecimal targetAmount;
     private LocalDate deadline;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "wallet_id", nullable = false)
+    private Wallet wallet;
 }
 
