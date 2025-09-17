@@ -2,28 +2,30 @@ package rs.ac.uns.walletapp.services;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.temporal.WeekFields;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import rs.ac.uns.walletapp.dto.CreateTransactionDTO;
 import rs.ac.uns.walletapp.dto.GetTransactionDTO;
 import rs.ac.uns.walletapp.dto.TransactionMoveDTO;
 import rs.ac.uns.walletapp.dto.TransactionMovedDTO;
 import rs.ac.uns.walletapp.model.Transaction;
-import rs.ac.uns.walletapp.model.Transfer;
 import rs.ac.uns.walletapp.model.Wallet;
 import rs.ac.uns.walletapp.repository.TransactionRepository;
-import rs.ac.uns.walletapp.repository.TransferRepository;
 import rs.ac.uns.walletapp.repository.WalletRepository;
 
 @Service
 public class TransactionService {
-
-    private final TransferRepository transferRepository;
-
     @Autowired
     private TransactionRepository transactionRepository;
 
@@ -33,26 +35,35 @@ public class TransactionService {
     @Autowired
     private CurrencyConversionService currencyConversionService;
 
-    TransactionService(TransferRepository transferRepository) {
-        this.transferRepository = transferRepository;
-    }
-
     public GetTransactionDTO addTransaction(CreateTransactionDTO transactionDTO) {
         Transaction transaction = new Transaction();
         transaction.setName(transactionDTO.getName());
         transaction.setAmount(transactionDTO.getAmount());
         transaction.setType(transactionDTO.getType());
         transaction.setDateOfExecution(LocalDate.now());
-        
-        Transaction savedTransaction = transactionRepository.save(transaction);
 
-        return new GetTransactionDTO(savedTransaction);
-}
+        transaction.setRepeatable(transactionDTO.isRepeatable());
+        transaction.setActiveRepeat(transactionDTO.isActiveRepeat());
+        transaction.setFrequency(transactionDTO.getFrequency());
+
+        Wallet wallet = walletRepository.findById(transactionDTO.getWalletId())
+            .orElseThrow(() -> new RuntimeException("Novčanik ne postoji."));
+
+        if (wallet.getTransactions() == null) {
+            wallet.setTransactions(new ArrayList<>());
+        }
+
+        wallet.getTransactions().add(transaction);
+        walletRepository.save(wallet);
+
+        return new GetTransactionDTO(transaction);
+    }
+
 
     public TransactionMovedDTO moveTransaction(TransactionMoveDTO transactionMoveDTO) {
         Optional<Wallet> sourceWalletOpt = walletRepository.findById(transactionMoveDTO.getSourceWalletId());
         Optional<Wallet> targetWalletOpt = walletRepository.findById(transactionMoveDTO.getTargetWalletId());
-        
+
         if (sourceWalletOpt.isEmpty() || targetWalletOpt.isEmpty()) {
             return null;
         }
@@ -68,38 +79,134 @@ public class TransactionService {
 
         BigDecimal convertedAmount = amount;
         if (!sourceWallet.getCurrency().equals(targetWallet.getCurrency())) {
-            convertedAmount = currencyConversionService.convert(amount, sourceWallet.getCurrency().getName(), targetWallet.getCurrency().getName());
+            convertedAmount = currencyConversionService.convert(
+                amount,
+                sourceWallet.getCurrency().getName(),
+                targetWallet.getCurrency().getName()
+            );
         }
 
         sourceWallet.setCurrBal(sourceWallet.getCurrBal().subtract(amount));
-
         targetWallet.setCurrBal(targetWallet.getCurrBal().add(convertedAmount));
 
-        Transfer t = new Transfer();
-        t.setAmount(convertedAmount);
-        t.setTransferDate(LocalDate.now());
-        
-        transferRepository.save(t);
+        Transaction outTransaction = new Transaction();
+        outTransaction.setName("Transfer u novcanik #" + targetWallet.getId());
+        outTransaction.setAmount(amount.negate());
+        outTransaction.setType(transactionMoveDTO.getType());
+        outTransaction.setDateOfExecution(LocalDate.now());
+        outTransaction.setRepeatable(transactionMoveDTO.isRepeatable());
+        outTransaction.setActiveRepeat(transactionMoveDTO.isActiveRepeat());
+        outTransaction.setFrequency(transactionMoveDTO.getFrequency());
+
+        Transaction inTransaction = new Transaction();
+        inTransaction.setName("Transfer iz novcanika #" + sourceWallet.getId());
+        inTransaction.setAmount(convertedAmount);
+        inTransaction.setType(transactionMoveDTO.getType());
+        inTransaction.setDateOfExecution(LocalDate.now());
+        inTransaction.setRepeatable(transactionMoveDTO.isRepeatable());
+        inTransaction.setActiveRepeat(transactionMoveDTO.isActiveRepeat());
+        inTransaction.setFrequency(transactionMoveDTO.getFrequency());
+
+        if (sourceWallet.getTransactions() == null)
+            sourceWallet.setTransactions(new ArrayList<>());
+        if (targetWallet.getTransactions() == null)
+            targetWallet.setTransactions(new ArrayList<>());
+
+        sourceWallet.getTransactions().add(outTransaction);
+        targetWallet.getTransactions().add(inTransaction);
 
         walletRepository.save(sourceWallet);
         walletRepository.save(targetWallet);
 
-        return new TransactionMovedDTO(t);
+        TransactionMovedDTO dto = new TransactionMovedDTO();
+        dto.setSourceWalletId(sourceWallet.getId());
+        dto.setTargetWalletId(targetWallet.getId());
+        dto.setAmount(convertedAmount);
+        dto.setDateOfExecution(LocalDate.now());
+        dto.setTransactionName("Transfer iz novcanika #" + sourceWallet.getId() + " u novcanik #" + targetWallet.getId());
+        dto.setType(transactionMoveDTO.getType());
+
+        return dto;
     }
 
-    public List<Transaction> getTransactionsByDay(LocalDate date) {
-        return transactionRepository.findByDate(date);
+    public Map<LocalDate, List<Transaction>> getTransactionsGroupedByDay() {
+        List<Transaction> transactions = transactionRepository.findAllOrderedByFullDate();
+
+        return transactions.stream()
+        .collect(Collectors.groupingBy(Transaction::getDateOfExecution));
     }
 
-    public List<Transaction> getTransactionsByWeek(int week, int year) {
-        return transactionRepository.findByWeekOfYear(week, year);
+    public Map<Integer, List<Transaction>> getTransactionsGroupedByWeek() {
+        List<Transaction> transactions = transactionRepository.findAllOrderedByWeek();
+
+        WeekFields weekFields = WeekFields.ISO;
+
+        return transactions.stream()
+        .collect(Collectors.groupingBy(t -> 
+            t.getDateOfExecution().get(weekFields.weekOfWeekBasedYear())
+        ));
     }
 
-    public List<Transaction> getTransactionsByMonth(int month, int year) {
-        return transactionRepository.findByMonthAndYear(month, year);
+    public Map<YearMonth, List<Transaction>> getTransactionsGroupedByMonth() {
+        List<Transaction> transactions = transactionRepository.findAllOrderedByMonthAndYear();
+
+        return transactions.stream()
+        .collect(Collectors.groupingBy(t -> YearMonth.from(t.getDateOfExecution())));
     }
 
-    public List<Transaction> getTransactionsByQuarter(int quarter, int year) {
-        return transactionRepository.findByQuarterAndYear(quarter, year);
+    public Map<Integer, List<Transaction>> getTransactionsGroupedByQuarter() {
+        List<Transaction> transactions = transactionRepository.findAllOrderedByQuarter();
+
+        return transactions.stream()
+        .collect(Collectors.groupingBy(t -> {
+            int month = t.getDateOfExecution().getMonthValue();
+            return (month - 1) / 3 + 1;
+        }));
+    }
+
+    public Map<Integer, List<Transaction>> getTransactionsGroupedByYear() {
+        List<Transaction> transactions = transactionRepository.findAllOrderedByYear();
+
+        return transactions.stream()
+            .collect(Collectors.groupingBy(t -> t.getDateOfExecution().getYear()));
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * *")
+    public void generateRecurringTransactions() {
+        List<Transaction> recurringTransactions = transactionRepository.findAllByRepeatableTrueAndActiveRepeatTrue();
+
+        for (Transaction t : recurringTransactions) {
+            if (shouldCreateNextTransaction(t)) {
+                Transaction newTransaction = new Transaction();
+                newTransaction.setName(t.getName());
+                newTransaction.setAmount(t.getAmount());
+                newTransaction.setType(t.getType());
+                newTransaction.setDateOfExecution(LocalDate.now());
+                newTransaction.setRepeatable(t.isRepeatable());
+                newTransaction.setActiveRepeat(t.isActiveRepeat());
+                newTransaction.setFrequency(t.getFrequency());
+                newTransaction.setUser(t.getUser());
+                newTransaction.setCategory(t.getCategory());
+
+                transactionRepository.save(newTransaction);
+            }
+        }
+    }
+
+    private boolean shouldCreateNextTransaction(Transaction t) {
+        LocalDate lastExecution = t.getDateOfExecution();
+        String freq = t.getFrequency();
+
+        switch (freq.toUpperCase()) {
+            case "DAILY":
+                return lastExecution.plusDays(1).isEqual(LocalDate.now());
+            case "WEEKLY":
+                return lastExecution.plusWeeks(1).isEqual(LocalDate.now());
+            case "MONTHLY":
+                return lastExecution.plusMonths(1).isEqual(LocalDate.now());
+            default:
+                return false;
+        }
     }
 }

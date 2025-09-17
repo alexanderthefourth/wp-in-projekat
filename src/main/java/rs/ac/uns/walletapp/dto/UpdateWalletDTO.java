@@ -33,4 +33,6 @@ public class UpdateWalletDTO {
         this.goal = w.getGoal();
         this.savings = w.isSavingsWallet();
     }
+
+    public UpdateWalletDTO(){}
 }

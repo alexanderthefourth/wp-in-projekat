@@ -15,6 +15,9 @@ public class GetTransactionDTO {
     private BigDecimal amount;
     private Type type;
     private LocalDate dateOfExecution;
+    private boolean repeatable;
+    private boolean activeRepeat;
+    private String frequency;
 
     public GetTransactionDTO(Transaction t){
         this.id = t.getId();
@@ -22,5 +25,10 @@ public class GetTransactionDTO {
         this.amount = t.getAmount();
         this.type = t.getType();
         this.dateOfExecution = t.getDateOfExecution();
+        this.repeatable = t.isRepeatable();
+        this.activeRepeat = t.isActiveRepeat();
+        this.frequency = t.getFrequency();
     }
+
+    public GetTransactionDTO(){}
 }

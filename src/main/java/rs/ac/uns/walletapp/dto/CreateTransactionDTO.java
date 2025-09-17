@@ -13,4 +13,10 @@ public class CreateTransactionDTO {
     private BigDecimal amount;
     private Type type;
     private LocalDate dateOfExecution;
+    private boolean repeatable;
+    private boolean activeRepeat;
+    private String frequency;
+    private int walletId;
+
+    public CreateTransactionDTO(){}
 }
