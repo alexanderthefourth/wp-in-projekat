@@ -1,0 +1,178 @@
+http://localhost:8080/api/wallets/0
+
+###
+POST http://localhost:8080/api/wallets/walletCreate
+Content-Type:application/json
+
+{
+  "name": "Travel Wallet",
+  "initBal": 500,
+  "currBal": 500,
+  "currency": {
+    "name": "EUR",
+    "value": 1.0
+  },
+  "creatingDate": "2025-09-17",
+  "archived": false,
+  "savings": true,
+  "goal": {
+    "name": "Trip to Japan",
+    "targetAmount": 3000,
+    "deadline": "2026-01-15"
+  }
+}
+
+
+###
+GET http://localhost:8080/api/wallets/1/viewCurrBal
+
+###
+GET http://localhost:8080/api/wallets/1
+
+###
+GET http://localhost:8080/api/wallets/1
+
+
+###
+POST http://localhost:8080/api/wallets/walletCreate
+Content-Type:application/json
+
+{
+  "name": "Emergency Fund",
+  "initBal": 1500,
+  "currBal": 1500,
+  "currency": {
+    "name": "USD",
+    "value": 1.00
+  },
+  "creatingDate": "2025-09-17",
+  "archived": false,
+  "savings": true,
+  "goal": {
+    "name": "Emergency Savings",
+    "targetAmount": 5000,
+    "deadline": "2026-12-31"
+  }
+}
+
+###
+POST http://localhost:8080/api/wallets/walletCreate
+Content-Type:application/json
+
+{
+  "name": "Daily Expenses Wallet",
+  "initBal": 300,
+  "currBal": 280,
+  "currency": {
+    "name": "GBP",
+    "value": 1.15
+  },
+  "creatingDate": "2025-09-17",
+  "archived": false,
+  "savings": false,
+  "goal": {
+    "name": "Manage Monthly Budget",
+    "targetAmount": 0,
+    "deadline": "2025-10-01"
+  }
+}
+
+###
+DELETE http://localhost:8080/api/wallets/2/deleteWallet
+
+###
+PUT http://localhost:8080/api/wallets/4/nameUpdate?name=NovoIme
+
+###
+POST http://localhost:8080/api/transactions/createTransaction
+Content-Type: application/json
+
+{
+  "name": "Sample Transaction",
+  "amount": 100.50,
+  "type": "EXPENSE",
+  "dateOfExecution": "2025-09-17",
+  "repeatable": true,
+  "activeRepeat": false,
+  "frequency": "MONTHLY"
+}
+
+###
+POST http://localhost:8080/api/transactions/createTransaction
+Content-Type: application/json
+
+{
+  "name": "Ponovni Test - sa WalletId",
+  "amount": 666600.00,
+  "type": "INCOME",
+  "dateOfExecution": "2025-09-20",
+  "repeatable": false,
+  "activeRepeat": false,
+  "frequency": null,
+  "walletId": 1
+}
+
+
+###
+POST http://localhost:8080/api/transactions/createTransaction
+Content-Type: application/json
+
+{
+  "name": "Test 2 - sa WalletId",
+  "amount": 45.99,
+  "type": "EXPENSE",
+  "dateOfExecution": "2025-09-01",
+  "repeatable": true,
+  "activeRepeat": false,
+  "frequency": "MONTHLY",
+  "walletId": 3
+}
+
+###
+POST http://localhost:8080/api/transactions/createTransaction
+Content-Type: application/json
+
+{
+  "name": "Rental Income",
+  "amount": 1200.00,
+  "type": "INCOME",
+  "dateOfExecution": "2025-10-01",
+  "repeatable": true,
+  "activeRepeat": false,
+  "frequency": "MONTHLY"
+}
+
+###
+GET http://localhost:8080/api/transactions/by-month?month=8&year=2025
+
+###
+GET http://localhost:8080/api/transactions/by-quarter?guarter=3
+
+###
+GET http://localhost:8080/api/transactions/by-day
+
+###
+GET http://localhost:8080/api/transactions/by-year
+
+###
+GET http://localhost:8080/api/transactions/by-week
+
+###
+POST http://localhost:8080/api/transactions/move
+Content-Type: application/json
+
+{
+  "sourceWalletId": 1,
+  "targetWalletId": 3,
+  "amount": 150.00
+}
+
+###
+POST http://localhost:8080/api/transactions/move
+Content-Type: application/json
+
+{
+  "sourceWalletId": 4,
+  "targetWalletId": 1,
+  "amount": 50.00
+}
