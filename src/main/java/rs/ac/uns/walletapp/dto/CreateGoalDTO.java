@@ -7,11 +7,11 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class GoalDTO {
-    private int id;
+public class CreateGoalDTO {
     private String name;
     private BigDecimal targetAmount;
     private LocalDate deadline;
 
-    public GoalDTO(){}
+    public CreateGoalDTO(){}
 }
+
