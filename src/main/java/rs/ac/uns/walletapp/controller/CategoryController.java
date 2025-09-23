@@ -1,6 +1,11 @@
 package rs.ac.uns.walletapp.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.walletapp.dto.CategoryDTO;
+import rs.ac.uns.walletapp.dto.CreateCategoryDTO;
+import rs.ac.uns.walletapp.dto.UpdateCategoryDTO;
 import rs.ac.uns.walletapp.model.Category;
 import rs.ac.uns.walletapp.service.CategoryService;
 
@@ -16,52 +21,41 @@ public class CategoryController {
     }
 
 
-    @GetMapping
-    public List<Category> getUserCategories(@RequestParam int userId) {
+    @GetMapping("/{userId}")
+    public List<CategoryDTO> getUserCategories(@RequestParam int userId) {
         return categoryService.getCategoriesForUser(userId);
     }
 
     @PostMapping
-    public Category createCategory(@RequestParam int userId, @RequestBody Category category) {
-        return categoryService.createCategoryForUser(userId, category);
+    public ResponseEntity<?> createCategory(@RequestBody CreateCategoryDTO createCategoryDTO) {
+        try {
+            return ResponseEntity.ok(categoryService.createCategoryForUser(createCategoryDTO));
+        }
+        catch(RuntimeException e){
+            return new ResponseEntity<>(e.getMessage() ,HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping
+    public ResponseEntity<?> updateCategory(UpdateCategoryDTO updateCategoryDTO ) {
+        try{
+            return ResponseEntity.ok(categoryService.updateUserCategory(updateCategoryDTO));
+        }
+        catch(RuntimeException e){
+            return new ResponseEntity<>(e.getMessage() ,HttpStatus.BAD_REQUEST);
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCategory(@PathVariable int id, @RequestParam int userId) {
-        categoryService.deleteUserCategory(userId, id);
-    }
+    public ResponseEntity<?> deleteCategory(@PathVariable int id) {
+        try{
+            categoryService.deleteCategory(id);
+            return ResponseEntity.noContent().build();
+        }
+        catch(RuntimeException e){
+            return new ResponseEntity<>(e.getMessage() ,HttpStatus.BAD_REQUEST);
+        }
 
-    /*
-    @PutMapping("/{id}")
-    public Category updateCategory(@PathVariable int id, @RequestParam int userId, @RequestBody Category categoryDetails) {
-        return categoryService.updateUserCategory(userId, id, categoryDetails);
     }
-    */
-
-    /*
-    @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryService.getAllCategories();
-    }
-
-    @GetMapping("/{id}")
-    public Category getCategoryById(@PathVariable int id) {
-        return categoryService.getCategoryById(id);
-    }
-
-    @PostMapping
-    public Category createCategory(@RequestBody Category category) {
-        return categoryService.createCategory(category);
-    }
-
-    @PutMapping("/{id}")
-    public Category updateCategory(@PathVariable int id, @RequestBody Category categoryInfo) {
-        return categoryService.updateCategory(id, categoryInfo);
-    }
-
-    @DeleteMapping("/{id}")
-    public void deleteCategory(@PathVariable int id) {
-        categoryService.deleteCategory(id);
-    }*/
 }
 
