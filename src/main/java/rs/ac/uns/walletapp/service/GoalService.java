@@ -26,7 +26,7 @@ public class GoalService {
     public GoalDTO createGoal(CreateGoalDTO createGoalDTO) {
         Optional<Wallet> walletMaybe = walletRepository.findById(createGoalDTO.getWalletId());
         if(walletMaybe.isEmpty()) {
-            throw new RuntimeException("luudii :DD");
+            throw new RuntimeException("Greska!");
         }
 
         Wallet wallet = walletMaybe.get();

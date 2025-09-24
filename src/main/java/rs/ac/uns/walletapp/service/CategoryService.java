@@ -57,12 +57,12 @@ public class CategoryService {
     public CategoryDTO updateUserCategory(UpdateCategoryDTO updateCategoryDTO) {
         Optional<Category> categoryMaybe = categoryRepository.findById(updateCategoryDTO.getCategoryId());
         if(categoryMaybe.isEmpty()) {
-            throw new RuntimeException("luudii :DD");
+            throw new RuntimeException("Greska!");
         }
 
         Category category = categoryMaybe.get();
         if(category.getUser().getId() != updateCategoryDTO.getUserId()) {
-            throw new RuntimeException("luudii :DDDDD");
+            throw new RuntimeException("Greska!");
         }
 
         category.setName(updateCategoryDTO.getName());
@@ -97,7 +97,7 @@ public class CategoryService {
     public void deleteCategory(int id) {
         Optional<Category> categoryMaybe = categoryRepository.findById(id);
         if(categoryMaybe.isEmpty()) {
-            throw new RuntimeException("luudii :DD");
+            throw new RuntimeException("Greska!");
         }
         categoryRepository.deleteById(id);
     }

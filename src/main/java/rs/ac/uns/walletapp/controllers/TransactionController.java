@@ -8,16 +8,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import rs.ac.uns.walletapp.dto.CreateTransactionDTO;
-import rs.ac.uns.walletapp.dto.GetTransactionDTO;
-import rs.ac.uns.walletapp.dto.TransactionMoveDTO;
-import rs.ac.uns.walletapp.dto.TransactionMovedDTO;
+import rs.ac.uns.walletapp.dto.*;
 import rs.ac.uns.walletapp.model.Transaction;
 import rs.ac.uns.walletapp.services.TransactionService;
 
@@ -75,4 +68,13 @@ public class TransactionController {
     public Map<Integer, List<Transaction>> getTransactionsGroupedByQuarter() {
         return transactionService.getTransactionsGroupedByQuarter();
     }
+
+    @GetMapping("/top-expenses")
+    public ResponseEntity<List<TopExpenseDTO>> getTop10Expenses(@RequestParam int userId, @RequestParam String startDate, @RequestParam String endDate) {
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+        List<TopExpenseDTO> topExpenses = transactionService.getTop10ExpensesForUserInPeriod(userId, start, end);
+        return ResponseEntity.ok(topExpenses);
+    }
+
 }
