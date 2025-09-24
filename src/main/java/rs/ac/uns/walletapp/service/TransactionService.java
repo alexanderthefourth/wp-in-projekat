@@ -1,11 +1,9 @@
-package rs.ac.uns.walletapp.services;
+package rs.ac.uns.walletapp.service;
 
 import org.springframework.data.jpa.domain.Specification;
 import rs.ac.uns.walletapp.dto.*;
 import rs.ac.uns.walletapp.model.Transaction;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -21,7 +19,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import rs.ac.uns.walletapp.model.Transaction;
 import rs.ac.uns.walletapp.model.Wallet;
 import rs.ac.uns.walletapp.repository.TransactionRepository;
 import rs.ac.uns.walletapp.repository.WalletRepository;

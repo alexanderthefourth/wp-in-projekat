@@ -1,4 +1,4 @@
-package rs.ac.uns.walletapp.controllers;
+package rs.ac.uns.walletapp.controller;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import rs.ac.uns.walletapp.dto.*;
 import rs.ac.uns.walletapp.model.Transaction;
-import rs.ac.uns.walletapp.services.TransactionService;
+import rs.ac.uns.walletapp.service.TransactionService;
 
 @RestController
 @RequestMapping("/api/transactions")
