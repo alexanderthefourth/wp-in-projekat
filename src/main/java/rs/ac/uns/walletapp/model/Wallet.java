@@ -39,11 +39,8 @@ public class Wallet{
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "wallet_id")
-    private List<Transfer> outTransfers;
+    private List<Transfer> transfers;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "wallet_id")
-    private List<Transfer> inTransfers;
 
     public Wallet(){}
 

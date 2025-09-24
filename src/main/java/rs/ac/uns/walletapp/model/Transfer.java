@@ -17,5 +17,6 @@ public class Transfer {
     private BigDecimal amount;
     private LocalDate transferDate;
 
+    private TransferType transferType;
 }
 

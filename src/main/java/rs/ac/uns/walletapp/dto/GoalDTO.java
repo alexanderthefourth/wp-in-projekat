@@ -1,6 +1,7 @@
 package rs.ac.uns.walletapp.dto;
 import lombok.Getter;
 import lombok.Setter;
+import rs.ac.uns.walletapp.model.Goal;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,5 +14,11 @@ public class GoalDTO {
     private BigDecimal targetAmount;
     private LocalDate deadline;
 
-    public GoalDTO(){}
+    public GoalDTO(Goal goal) {
+        id = goal.getId();
+        name = goal.getName();
+        targetAmount = goal.getTargetAmount();
+        deadline = goal.getDeadline();
+    }
 }
+

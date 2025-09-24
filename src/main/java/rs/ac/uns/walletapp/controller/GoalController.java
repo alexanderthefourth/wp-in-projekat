@@ -1,10 +1,13 @@
 package rs.ac.uns.walletapp.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.walletapp.dto.CreateGoalDTO;
 import rs.ac.uns.walletapp.dto.GoalDTO;
 import rs.ac.uns.walletapp.service.GoalService;
 
+import java.net.http.HttpResponse;
 import java.util.List;
 
 @RestController
@@ -16,11 +19,11 @@ public class GoalController {
         this.goalService = goalService;
     }
 
-    @GetMapping
+    /*@GetMapping
     public List<GoalDTO> getUserGoals(@RequestParam int userId) {
         return goalService.getGoalsForUser(userId);
-    }
-
+    }*/
+    /*
     @GetMapping("/{id}")
     public ResponseEntity<GoalDTO> getGoalById(@PathVariable int id, @RequestParam int userId) {
         GoalDTO goal = goalService.getGoalById(id, userId);
@@ -28,19 +31,18 @@ public class GoalController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(goal);
-    }
+    }*/
 
     @PostMapping
-    public GoalDTO createGoal(@RequestParam int userId, @RequestBody GoalDTO goalDTO) {
-        return goalService.createGoal(userId, goalDTO);
+    public ResponseEntity<?> createGoal(@RequestBody CreateGoalDTO createGoalDTO) {
+        try{
+            return ResponseEntity.ok(goalService.createGoal(createGoalDTO));
+        }
+        catch(RuntimeException e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteGoal(@PathVariable int id, @RequestParam int userId) {
-        boolean deleted = goalService.deleteGoal(id, userId);
-        if (deleted) {
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.notFound().build();
-    }
+
 }

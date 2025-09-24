@@ -11,7 +11,7 @@ public class CreateGoalDTO {
     private String name;
     private BigDecimal targetAmount;
     private LocalDate deadline;
+    private int walletId;
 
     public CreateGoalDTO(){}
 }
-
