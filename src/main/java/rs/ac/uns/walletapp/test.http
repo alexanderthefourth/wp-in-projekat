@@ -1,5 +1,3 @@
-http://localhost:8080/api/wallets/0
-
 ###
 POST http://localhost:8080/api/wallets/walletCreate
 Content-Type:application/json
@@ -24,13 +22,13 @@ Content-Type:application/json
 
 
 ###
-GET http://localhost:8080/api/wallets/1/viewCurrBal
+GET http://localhost:8080/api/wallets/5/viewCurrBal
 
 ###
 GET http://localhost:8080/api/wallets/1
 
 ###
-GET http://localhost:8080/api/wallets/1
+GET http://localhost:8080/api/wallets/5
 
 
 ###
@@ -78,10 +76,10 @@ Content-Type:application/json
 }
 
 ###
-DELETE http://localhost:8080/api/wallets/2/deleteWallet
+DELETE http://localhost:8080/api/wallets/3/deleteWallet
 
 ###
-PUT http://localhost:8080/api/wallets/4/nameUpdate?name=NovoIme
+PUT http://localhost:8080/api/wallets/4/nameUpdate?name=Ime
 
 ###
 POST http://localhost:8080/api/transactions/createTransaction
@@ -143,7 +141,7 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/api/transactions/by-month?month=8&year=2025
+GET http://localhost:8080/api/transactions/by-month?month=9&year=2025
 
 ###
 GET http://localhost:8080/api/transactions/by-quarter?guarter=3
