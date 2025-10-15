@@ -1,7 +1,10 @@
 package rs.ac.uns.walletapp.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.walletapp.dto.LoginUserDTO;
+import rs.ac.uns.walletapp.dto.RegisterUserDTO;
 import rs.ac.uns.walletapp.dto.UserDTO;
 import rs.ac.uns.walletapp.service.UserService;
 
@@ -32,4 +35,21 @@ public class UserController {
         if (updated == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(updated);
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterUserDTO dto) {
+        try{
+            return ResponseEntity.ok(userService.registerUser(dto));
+        }
+        catch(RuntimeException e){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginUserDTO dto) {
+        boolean success = userService.login(dto);
+        return success ? ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
 }
