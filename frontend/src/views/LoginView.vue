@@ -3,7 +3,7 @@
     <h2>Prijava</h2>
 
     <form @submit.prevent="handleLogin">
-      <label for="username">Email:</label>
+      <label for="username">Username:</label>
       <input v-model="username" id="username" type="username" required />
 
       <label for="password">Password:</label>
@@ -20,6 +20,27 @@
 <script setup>
 import { ref } from "vue";
 import axios from "axios";
+
+import { ref, onMounted } from 'vue'
+import { Users } from '../services/api'
+
+const userCount = ref(null)
+const loading = ref(true)
+const err = ref('')
+
+onMounted(async () => {
+  try {
+    const { data } = await Users.userCount()
+    userCount.value = data
+  } catch (e) {
+    err.value = 'Greška pri učitavanju broja korisnika.'
+  } finally {
+    loading.value = false
+  }
+})
+
+
+
 
 const username = ref("");
 const password = ref("");
