@@ -1,4 +1,4 @@
-package rs.ac.uns.walletapp.services;
+package rs.ac.uns.walletapp.service;
 
 import org.springframework.stereotype.Service;
 

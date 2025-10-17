@@ -59,6 +59,14 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
 
     List<Transaction> findByDateOfExecutionBetween(LocalDate start, LocalDate end);
 
+    @Query("SELECT t FROM Transaction t " +
+            "WHERE t.user.id = :userId " +
+            "AND t.type = rs.ac.uns.walletapp.model.Type.EXPENSE " +
+            "AND t.dateOfExecution BETWEEN :startDate AND :endDate " +
+            "ORDER BY t.amount DESC " +
+            "LIMIT 10")
+    List<Transaction> findTop10ExpensesForUserInPeriod(int userId, LocalDate startDate, LocalDate endDate);
+
     @Query("SELECT t FROM Transaction t WHERE " +
             "(:userId IS NULL OR t.user.id = :userId) AND " +
             "(:categoryId IS NULL OR t.category.id = :categoryId) AND " +

@@ -45,6 +45,7 @@ public class Wallet{
     @JoinColumn(name = "wallet_id")
     private List<Transfer> inTransfers;
 
+
     public Wallet(){}
 
     public Wallet(String name, BigDecimal initBal, Currency currency, boolean savingsWallet){

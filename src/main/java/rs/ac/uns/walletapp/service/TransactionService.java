@@ -1,10 +1,9 @@
-package rs.ac.uns.walletapp.services;
+package rs.ac.uns.walletapp.service;
 
 import org.springframework.data.jpa.domain.Specification;
+import rs.ac.uns.walletapp.dto.*;
 import rs.ac.uns.walletapp.model.Transaction;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -20,11 +19,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import rs.ac.uns.walletapp.dto.CreateTransactionDTO;
-import rs.ac.uns.walletapp.dto.GetTransactionDTO;
-import rs.ac.uns.walletapp.dto.TransactionMoveDTO;
-import rs.ac.uns.walletapp.dto.TransactionMovedDTO;
-import rs.ac.uns.walletapp.model.Transaction;
 import rs.ac.uns.walletapp.model.Wallet;
 import rs.ac.uns.walletapp.repository.TransactionRepository;
 import rs.ac.uns.walletapp.repository.WalletRepository;
@@ -244,4 +238,20 @@ public class TransactionService {
             return cb.lessThanOrEqualTo(root.get("dateOfExecution"), end);
         };
     }
+
+    public List<TopExpenseDTO> getTop10ExpensesForUserInPeriod(int userId, LocalDate start, LocalDate end) {
+        List<Transaction> expenses = transactionRepository.findTop10ExpensesForUserInPeriod(userId, start, end);
+        List<TopExpenseDTO> result = new ArrayList<>();
+
+        for (Transaction t : expenses) {
+            result.add(new TopExpenseDTO(
+                    t.getName(),
+                    t.getAmount(),
+                    t.getDateOfExecution(),
+                    t.getCategory() != null ? t.getCategory().getName() : "N/A"
+            ));
+        }
+        return result;
+    }
+
 }

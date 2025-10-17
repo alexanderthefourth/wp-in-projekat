@@ -1,4 +1,4 @@
-package rs.ac.uns.walletapp.controllers;
+package rs.ac.uns.walletapp.controller;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import rs.ac.uns.walletapp.dto.WalletCreatedDTO;
 import rs.ac.uns.walletapp.dto.WalletDTO;
 import rs.ac.uns.walletapp.model.Transfer;
-import rs.ac.uns.walletapp.services.WalletService;
+import rs.ac.uns.walletapp.service.WalletService;
 
 
 @RestController

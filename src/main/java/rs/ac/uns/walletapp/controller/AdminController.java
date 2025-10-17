@@ -1,11 +1,11 @@
-package rs.ac.uns.walletapp.controllers;
+package rs.ac.uns.walletapp.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.walletapp.dto.DashboardDto;
 import rs.ac.uns.walletapp.model.Transaction;
-import rs.ac.uns.walletapp.services.AdminService;
+import rs.ac.uns.walletapp.service.AdminService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

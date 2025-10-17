@@ -6,6 +6,7 @@ import rs.ac.uns.walletapp.model.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
 
@@ -17,4 +18,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Query("SELECT SUM(w.currBal) FROM User u JOIN u.walletList w")
     BigDecimal totalMoneyInAllAccounts();
+
+    Optional<User> findByEmail(String email);
+
+    Optional<User> findByUsername(String username);
 }
