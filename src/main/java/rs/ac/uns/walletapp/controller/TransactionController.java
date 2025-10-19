@@ -43,32 +43,6 @@ public class TransactionController {
         }
     }
 
-
-    @GetMapping("by-day")
-    public Map<LocalDate, List<Transaction>> getTransactionsGroupedByDay() {
-        return transactionService.getTransactionsGroupedByDay();
-    }
-
-    @GetMapping("by-month")
-    public Map<YearMonth, List<Transaction>> getTransactionsGroupedByMonth() {
-        return transactionService.getTransactionsGroupedByMonth();
-    }
-
-    @GetMapping("by-week")
-    public Map<Integer, List<Transaction>> getTransactionsGroupedByWeek() {
-        return transactionService.getTransactionsGroupedByWeek();
-    }
-
-    @GetMapping("by-year")
-    public Map<Integer, List<Transaction>> getTransactionsGroupedByYear() {
-        return transactionService.getTransactionsGroupedByYear();
-    }
-
-    @GetMapping("by-quarter")
-    public Map<Integer, List<Transaction>> getTransactionsGroupedByQuarter() {
-        return transactionService.getTransactionsGroupedByQuarter();
-    }
-
     @GetMapping("/top-expenses")
     public ResponseEntity<List<TopExpenseDTO>> getTop10Expenses(@RequestParam int userId, @RequestParam String startDate, @RequestParam String endDate) {
         LocalDate start = LocalDate.parse(startDate);

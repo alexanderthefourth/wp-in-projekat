@@ -10,6 +10,7 @@ import rs.ac.uns.walletapp.model.Wallet;
 @Setter
 @Getter
 public class WalletDTO {
+    private int id;
     private String name;
     private BigDecimal initBal;
     private BigDecimal currBal;
@@ -20,6 +21,7 @@ public class WalletDTO {
     private CreateGoalDTO goal;
 
     public WalletDTO(Wallet w){
+        this.id = w.getId();
         this.name = w.getName();
         this.initBal = w.getInitBal();
         this.currBal = w.getCurrBal();

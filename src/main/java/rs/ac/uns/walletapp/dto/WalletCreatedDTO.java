@@ -33,5 +33,10 @@ public class WalletCreatedDTO {
         this.savings = w.isSavingsWallet();
     }
 
+    public WalletCreatedDTO(int Id, String name){
+        this.id = Id;
+        this.name = name;
+    }
+
     public WalletCreatedDTO(){}
 }

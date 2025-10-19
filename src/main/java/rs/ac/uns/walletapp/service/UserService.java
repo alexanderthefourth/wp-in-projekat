@@ -3,12 +3,15 @@ package rs.ac.uns.walletapp.service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import rs.ac.uns.walletapp.dto.AuthUserDTO;
 import rs.ac.uns.walletapp.dto.LoginUserDTO;
 import rs.ac.uns.walletapp.dto.RegisterUserDTO;
 import rs.ac.uns.walletapp.dto.UserDTO;
 import rs.ac.uns.walletapp.model.Role;
 import rs.ac.uns.walletapp.model.User;
 import rs.ac.uns.walletapp.repository.UserRepository;
+import rs.ac.uns.walletapp.dto.AuthUserDTO;
 
 import java.time.LocalDate;
 
@@ -87,6 +90,16 @@ public class UserService {
         dto.setLastName(updated.getLastName());
         dto.setEmail(updated.getEmail());
         dto.setBirthDate(updated.getBirthDate());
+        return dto;
+    }
+
+    public AuthUserDTO getAuthByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        AuthUserDTO dto = new AuthUserDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setRole(user.getRole());
         return dto;
     }
 }
