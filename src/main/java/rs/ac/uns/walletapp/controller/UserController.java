@@ -1,5 +1,6 @@
 package rs.ac.uns.walletapp.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +54,12 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
             return ResponseEntity.ok(userService.getAuthByUsername(dto.getUsername()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok("Uspešno ste se odjavili.");
     }
 
 }

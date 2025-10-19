@@ -16,6 +16,7 @@
     <div style="color: var(--ink-muted); margin-top: 8px">
       Izaberite novčanik iz liste da prikažete detalje.
     </div>
+    <LogoutButton />
   </UiCard>
 
   <UiCard v-if="wallet?.goal" class="tile goal-card">
@@ -354,6 +355,7 @@
 </template>
 
 <script setup>
+import LogoutButton from '@/components/LogoutButton.vue'
 import { ref, onMounted, computed, watch } from 'vue'
 import UiCard from '../components/UiCard.vue'
 import { Stats } from '../services/api'
