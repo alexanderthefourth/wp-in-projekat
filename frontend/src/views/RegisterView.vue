@@ -27,24 +27,27 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import axios from "axios";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-const firstName = ref("");
-const lastName = ref("");
-const username = ref("");
-const email = ref("");
-const password = ref("");
-const errorMessage = ref("");
-const successMessage = ref("");
+const router = useRouter()
+
+const firstName = ref('')
+const lastName = ref('')
+const username = ref('')
+const email = ref('')
+const password = ref('')
+const errorMessage = ref('')
+const successMessage = ref('')
 
 async function handleRegister() {
-  errorMessage.value = "";
-  successMessage.value = "";
+  errorMessage.value = ''
+  successMessage.value = ''
 
   try {
-    const response = await axios.post(
-      "http://localhost:8080/api/users/register",
+    const { data, status } = await axios.post(
+      'http://localhost:8080/api/users/register',
       {
         firstName: firstName.value,
         lastName: lastName.value,
@@ -53,13 +56,22 @@ async function handleRegister() {
         unhashedPassword: password.value,
       },
       { withCredentials: true }
-    );
+    )
 
-    if (response.status === 200 || response.status === 201) {
-      successMessage.value = "Registracija uspešna!";
+    if ((status === 200 || status === 201) && data) {
+      successMessage.value = 'Registracija uspešna!'
+      // data is a User entity (role will be USER by default)
+      localStorage.setItem('user', JSON.stringify({
+        id: data.id,
+        username: data.username,
+        role: data.role
+      }))
+      const isAdmin = data.role === 'ADMIN'
+      router.push(isAdmin ? '/registered-admin' : '/registered')
     }
   } catch (error) {
-    errorMessage.value = "Greška prilikom registracije.";
+    console.error(error?.response?.data || error)
+    errorMessage.value = 'Greška prilikom registracije.'
   }
 }
 </script>

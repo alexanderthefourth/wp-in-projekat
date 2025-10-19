@@ -49,7 +49,10 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginUserDTO dto) {
         boolean success = userService.login(dto);
-        return success ? ResponseEntity.ok().build() : ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (!success) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+            return ResponseEntity.ok(userService.getAuthByUsername(dto.getUsername()));
     }
 
 }

@@ -128,48 +128,6 @@ public class TransactionService {
         return dto;
     }
 
-    public Map<LocalDate, List<Transaction>> getTransactionsGroupedByDay() {
-        List<Transaction> transactions = transactionRepository.findAllOrderedByFullDate();
-
-        return transactions.stream()
-        .collect(Collectors.groupingBy(Transaction::getDateOfExecution));
-    }
-
-    public Map<Integer, List<Transaction>> getTransactionsGroupedByWeek() {
-        List<Transaction> transactions = transactionRepository.findAllOrderedByWeek();
-
-        WeekFields weekFields = WeekFields.ISO;
-
-        return transactions.stream()
-        .collect(Collectors.groupingBy(t -> 
-            t.getDateOfExecution().get(weekFields.weekOfWeekBasedYear())
-        ));
-    }
-
-    public Map<YearMonth, List<Transaction>> getTransactionsGroupedByMonth() {
-        List<Transaction> transactions = transactionRepository.findAllOrderedByMonthAndYear();
-
-        return transactions.stream()
-        .collect(Collectors.groupingBy(t -> YearMonth.from(t.getDateOfExecution())));
-    }
-
-    public Map<Integer, List<Transaction>> getTransactionsGroupedByQuarter() {
-        List<Transaction> transactions = transactionRepository.findAllOrderedByQuarter();
-
-        return transactions.stream()
-        .collect(Collectors.groupingBy(t -> {
-            int month = t.getDateOfExecution().getMonthValue();
-            return (month - 1) / 3 + 1;
-        }));
-    }
-
-    public Map<Integer, List<Transaction>> getTransactionsGroupedByYear() {
-        List<Transaction> transactions = transactionRepository.findAllOrderedByYear();
-
-        return transactions.stream()
-            .collect(Collectors.groupingBy(t -> t.getDateOfExecution().getYear()));
-    }
-
     @Transactional
     @Scheduled(cron = "0 0 0 * * *")
     public void generateRecurringTransactions() {

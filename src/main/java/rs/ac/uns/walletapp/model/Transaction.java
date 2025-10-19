@@ -32,6 +32,13 @@ public class Transaction{
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "wallet_id")
+    private Wallet wallet;
+
+    @Enumerated(EnumType.STRING)
+    private Type type2;
+
     public Transaction() {}
 
 

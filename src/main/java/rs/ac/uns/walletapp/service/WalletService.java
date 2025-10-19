@@ -14,24 +14,35 @@ import rs.ac.uns.walletapp.dto.WalletDTO;
 import rs.ac.uns.walletapp.model.Currency;
 import rs.ac.uns.walletapp.model.Goal;
 import rs.ac.uns.walletapp.model.Transfer;
+import rs.ac.uns.walletapp.model.User;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import rs.ac.uns.walletapp.repository.CurrencyRepository;
 import rs.ac.uns.walletapp.repository.GoalRepository;
+import rs.ac.uns.walletapp.repository.UserRepository;
 import rs.ac.uns.walletapp.repository.WalletRepository;
 
 @Service
 public class WalletService {
     @Autowired
     private WalletRepository walletRepository;
-
-    @Autowired
-    private GoalRepository goalRepository;
-
+    
     @Autowired
     private CurrencyRepository currencyRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    public List<WalletDTO> getAllForUser(int userId) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        List<Wallet> wallets = u.getWalletList();
+        return wallets.stream().map(WalletDTO::new).toList();
+    }
 
     public boolean deleteWallet(int id) {
         Optional<Wallet> walletOptional = walletRepository.findById(id);
@@ -43,42 +54,41 @@ public class WalletService {
         }
     }
 
-    public WalletCreatedDTO createWallet(WalletDTO walletDTO){
-        Wallet newWallet = new Wallet();
-        newWallet.setName(walletDTO.getName());
-        newWallet.setInitBal(walletDTO.getInitBal());
-        newWallet.setCurrBal(walletDTO.getCurrBal());
-        newWallet.setCreationDate(LocalDate.now());
-        newWallet.setTransactions(null);
-        newWallet.setArchived(false);
-        newWallet.setInTransfers(null);
-        newWallet.setOutTransfers(null);
+    @Transactional
+    public WalletCreatedDTO createWalletForUser(int userId, WalletDTO dto) {
+        User u = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found " + userId));
 
-        CurrencyDTO currencyDTO = walletDTO.getCurrency();
+        Wallet w = new Wallet();
+        w.setName(dto.getName());
+        w.setInitBal(dto.getInitBal());
+        w.setCurrBal(dto.getCurrBal() != null ? dto.getCurrBal() : dto.getInitBal());
+        w.setCurrency(currencyRepository.findByName(dto.getCurrency().getName())
+                    .orElseThrow(() -> new IllegalArgumentException("Currency not found")));
+        w.setCreationDate(dto.getCreatingDate());
+        w.setArchived(dto.isArchived());
+        w.setSavingsWallet(dto.isSavings());
 
-        Currency currency = currencyRepository.findById(currencyDTO.getName())
-            .orElseGet(() -> {
-                Currency c = new Currency();
-                c.setName(currencyDTO.getName());
-                c.setValue(currencyDTO.getValue());
-                return currencyRepository.save(c);
-            });
+        u.getWalletList().add(w);
+        userRepository.save(u);
 
-        newWallet.setCurrency(currency);
+        return new WalletCreatedDTO(w.getId(), w.getName());
+    }
 
-        if (walletDTO.getGoal() != null) {
-            CreateGoalDTO goalDTO = walletDTO.getGoal();
-            Goal goal = new Goal();
-            goal.setName(goalDTO.getName());
-            goal.setTargetAmount(goalDTO.getTargetAmount());
-            goal.setDeadline(goalDTO.getDeadline());
 
-            Goal savedGoal = goalRepository.save(goal);
-            newWallet.setGoal(savedGoal);
+    @Transactional(readOnly = true)
+    public List<Wallet> getWalletsForUser(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Nepostojeći korisnik: " + userId));
+        return user.getWalletList() == null ? List.of() : user.getWalletList();
+    }
+
+    private Currency resolveCurrency(CurrencyDTO dto) {
+        if (dto == null || dto.getName() == null) {
+            throw new IllegalArgumentException("Valuta je obavezna");
         }
-
-        Wallet savedWallet = walletRepository.save(newWallet);
-        return new WalletCreatedDTO(savedWallet);
+        return currencyRepository.findByName(dto.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Nepostojeća valuta: " + dto.getName()));
     }
 
     public WalletDTO updateName(int id, String name) {

@@ -18,54 +18,38 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import axios from "axios";
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-import { ref, onMounted } from 'vue'
-import { Users } from '../services/api'
+const router = useRouter()
 
-const userCount = ref(null)
-const loading = ref(true)
-const err = ref('')
-
-onMounted(async () => {
-  try {
-    const { data } = await Users.userCount()
-    userCount.value = data
-  } catch (e) {
-    err.value = 'Greška pri učitavanju broja korisnika.'
-  } finally {
-    loading.value = false
-  }
-})
-
-
-
-
-const username = ref("");
-const password = ref("");
-const errorMessage = ref("");
-const successMessage = ref("");
+const username = ref('')
+const password = ref('')
+const errorMessage = ref('')
+const successMessage = ref('')
 
 async function handleLogin() {
-  errorMessage.value = "";
-  successMessage.value = "";
+  errorMessage.value = ''
+  successMessage.value = ''
 
   try {
-    const response = await axios.post(
-      "http://localhost:8080/api/users/login",
-      {
-        username: username.value,
-        password: password.value,
-      },
+    const { data, status } = await axios.post(
+      'http://localhost:8080/api/users/login',
+      { username: username.value, password: password.value },
       { withCredentials: true }
-    );
+    )
 
-    if (response.status === 200) {
-      successMessage.value = "Uspešno ste prijavljeni!";
+    if (status === 200 && data) {
+      localStorage.setItem('user', JSON.stringify(data))
+      successMessage.value = 'Uspešno ste prijavljeni!'
+
+      const isAdmin = data.role === 'ADMIN'
+      router.push(isAdmin ? '/registered-admin' : '/registered')
     }
   } catch (error) {
-    errorMessage.value = "Pogrešan email ili lozinka.";
+    console.error(error?.response?.data || error)
+    errorMessage.value = 'Pogrešan email ili lozinka.'
   }
 }
 </script>

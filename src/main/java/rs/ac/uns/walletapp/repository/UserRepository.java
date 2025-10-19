@@ -1,5 +1,6 @@
 package rs.ac.uns.walletapp.repository;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import rs.ac.uns.walletapp.model.User;
@@ -22,4 +23,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
 
     Optional<User> findByUsername(String username);
+
+    @EntityGraph(attributePaths = {"walletList", "walletList.currency"})
+    Optional<User> findById(Integer id);
 }
