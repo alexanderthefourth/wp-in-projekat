@@ -3,6 +3,7 @@ package rs.ac.uns.walletapp.repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import rs.ac.uns.walletapp.dto.TransactionRowDTO;
@@ -55,4 +56,23 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findTop10ByDateOfExecutionBetweenOrderByAmountDesc(LocalDate start, LocalDate end);
 
     List<Transaction> findTop10ByDateOfExecutionOrderByAmountDesc(LocalDate date);
+
+    @Query("SELECT t FROM Transaction t WHERE " +
+            "(:username IS NULL OR t.user.username = :username) AND " +
+            "(:categoryName IS NULL OR t.category.name = :categoryName) AND " +
+            "(:minAmount IS NULL OR t.amount >= :minAmount) AND " +
+            "(:maxAmount IS NULL OR t.amount <= :maxAmount) AND " +
+            "(:startDate IS NULL OR t.dateOfExecution >= :startDate) AND " +
+            "(:endDate IS NULL OR t.dateOfExecution <= :endDate)")
+    List<Transaction> filterTransactions(
+            String username,
+            String categoryName,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            LocalDate startDate,
+            LocalDate endDate
+    );
+
+
+
 }

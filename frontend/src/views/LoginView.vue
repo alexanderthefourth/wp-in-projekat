@@ -1,10 +1,9 @@
 <template>
   <div class="auth-container">
     <h2>Prijava</h2>
-
     <form @submit.prevent="handleLogin">
       <label for="username">Username:</label>
-      <input v-model="username" id="username" type="username" required />
+      <input v-model="username" id="username" type="text" required />
 
       <label for="password">Password:</label>
       <input v-model="password" id="password" type="password" required />
@@ -23,7 +22,6 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
-
 const username = ref('')
 const password = ref('')
 const errorMessage = ref('')
@@ -42,14 +40,16 @@ async function handleLogin() {
 
     if (status === 200 && data) {
       localStorage.setItem('user', JSON.stringify(data))
-      successMessage.value = 'Uspešno ste prijavljeni!'
-
+      if (data.blocked) {
+        router.push('/blocked')
+        return
+      }
       const isAdmin = data.role === 'ADMIN'
       router.push(isAdmin ? '/registered-admin' : '/registered')
     }
   } catch (error) {
     console.error(error?.response?.data || error)
-    errorMessage.value = 'Pogrešan email ili lozinka.'
+    errorMessage.value = 'Pogresan username ili lozinka.'
   }
 }
 </script>
@@ -63,24 +63,20 @@ async function handleLogin() {
   border-radius: 12px;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
 }
-
 h2 {
   text-align: center;
   margin-bottom: 20px;
 }
-
 form {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-
 input {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 8px;
 }
-
 button {
   padding: 10px;
   background-color: #2e7d32;
@@ -90,16 +86,13 @@ button {
   cursor: pointer;
   font-weight: bold;
 }
-
 button:hover {
   background-color: #1b5e20;
 }
-
 .error {
   color: #c62828;
   margin-top: 10px;
 }
-
 .success {
   color: #2e7d32;
   margin-top: 10px;

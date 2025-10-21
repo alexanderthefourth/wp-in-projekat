@@ -18,7 +18,10 @@ public class Wallet{
     private int id;
 
     private String name;
+    @Column(precision = 19, scale = 4)
     private BigDecimal initBal;
+
+    @Column(precision = 19, scale = 4)
     private BigDecimal currBal;
 
     @ManyToOne

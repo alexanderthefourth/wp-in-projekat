@@ -4,10 +4,14 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import rs.ac.uns.walletapp.dto.AdminCommentDTO;
 import rs.ac.uns.walletapp.dto.LoginUserDTO;
 import rs.ac.uns.walletapp.dto.RegisterUserDTO;
 import rs.ac.uns.walletapp.dto.UserDTO;
+import rs.ac.uns.walletapp.model.User;
 import rs.ac.uns.walletapp.service.UserService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -21,6 +25,32 @@ public class UserController {
     @GetMapping("/userCount")
     public int getUserCount() {
         return userService.getUserCount();
+    }
+
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    @PutMapping("/{id}/comment")
+    public ResponseEntity<?> updateAdminComment(@PathVariable int id, @RequestBody String comment) {
+        try {
+            userService.updateAdminComment(id, comment);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+    @PutMapping("/{id}/block")
+    public ResponseEntity<?> toggleBlock(@PathVariable int id) {
+        try {
+            userService.toggleBlockUser(id);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping("/profile")

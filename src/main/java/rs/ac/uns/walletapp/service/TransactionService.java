@@ -212,4 +212,24 @@ public class TransactionService {
         return result;
     }
 
+    public List<Transaction> getTransactionsByUser(int userId) {
+        return transactionRepository.findByUser_Id(userId);
+    }
+
+    public List<Transaction> filterTransactions(
+            String username,
+            String categoryName,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            LocalDate date) {
+
+        return transactionRepository.filterTransactions(
+                username,
+                categoryName,
+                minAmount,
+                maxAmount,
+                date,
+                date
+        );
+    }
 }

@@ -11,9 +11,9 @@ import rs.ac.uns.walletapp.dto.UserDTO;
 import rs.ac.uns.walletapp.model.Role;
 import rs.ac.uns.walletapp.model.User;
 import rs.ac.uns.walletapp.repository.UserRepository;
-import rs.ac.uns.walletapp.dto.AuthUserDTO;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -23,6 +23,23 @@ public class UserService {
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public void updateAdminComment(int id, String comment) {
+        User u = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        u.setAdminComment(comment);
+        userRepository.save(u);
+    }
+
+
+    public void toggleBlockUser(int id) {
+        User u = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        u.setBlocked(!u.isBlocked());
+        userRepository.save(u);
     }
 
     public User registerUser(RegisterUserDTO regUserDTO) {
@@ -100,6 +117,7 @@ public class UserService {
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setRole(user.getRole());
+        dto.setBlocked(user.isBlocked());
         return dto;
     }
 }

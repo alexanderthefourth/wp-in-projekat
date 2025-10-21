@@ -1,5 +1,6 @@
 package rs.ac.uns.walletapp.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
@@ -51,4 +52,32 @@ public class TransactionController {
         return ResponseEntity.ok(topExpenses);
     }
 
+    @GetMapping("/by-user")
+    public ResponseEntity<List<Transaction>> getTransactionsByUser(@RequestParam int userId) {
+        try {
+            List<Transaction> transactions = transactionService.getTransactionsByUser(userId);
+            return ResponseEntity.ok(transactions);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Transaction>> getAllTransactions(
+            @RequestParam(required = false) String username,        // Promenjeno iz userId u username
+            @RequestParam(required = false) String categoryName,    // Promenjeno iz categoryId u categoryName
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) String date) {
+        try {
+            LocalDate filterDate = date != null ? LocalDate.parse(date) : null;
+
+            List<Transaction> transactions = transactionService.filterTransactions(
+                    username, categoryName, minAmount, maxAmount, filterDate
+            );
+            return ResponseEntity.ok(transactions);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
 }

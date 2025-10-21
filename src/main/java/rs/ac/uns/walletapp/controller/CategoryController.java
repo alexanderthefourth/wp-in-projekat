@@ -12,7 +12,7 @@ import rs.ac.uns.walletapp.service.CategoryService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/categories")
+@RequestMapping("/api/categories")
 public class CategoryController {
     private final CategoryService categoryService;
 
@@ -21,7 +21,7 @@ public class CategoryController {
     }
 
 
-    @GetMapping("/{userId}")
+    @GetMapping
     public List<CategoryDTO> getUserCategories(@RequestParam int userId) {
         return categoryService.getCategoriesForUser(userId);
     }
@@ -56,6 +56,11 @@ public class CategoryController {
             return new ResponseEntity<>(e.getMessage() ,HttpStatus.BAD_REQUEST);
         }
 
+    }
+
+    @GetMapping("/all")
+    public List<Category> getAllCategories() {
+        return categoryService.getAllCategories();
     }
 }
 

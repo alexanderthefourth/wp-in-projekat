@@ -101,5 +101,9 @@ public class CategoryService {
         }
         categoryRepository.deleteById(id);
     }
+
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
+    }
 }
 
