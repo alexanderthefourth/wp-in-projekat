@@ -42,6 +42,10 @@ public class GoalService {
         return new GoalDTO(goal);
     }
 
-
+    public GoalDTO getGoalForWallet(int walletId) {
+        Wallet w = walletRepository.findById(walletId).orElse(null);
+        if (w == null || w.getGoal() == null) return null;
+        return new GoalDTO(w.getGoal());
+    }
 
 }

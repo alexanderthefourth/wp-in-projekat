@@ -32,6 +32,8 @@ export const Users = {
   userCount: () => api.get('/users/userCount'),
   login: (body) => api.post('/users/login', body, { withCredentials: true }),
   register: (body) => api.post('/users/register', body, { withCredentials: true }),
+  updateProfile: (userId, payload) =>
+    api.put(`/users/profile`, payload, { params: { userId } }),
 }
 
 export const Wallets = {
@@ -61,6 +63,17 @@ export const Transactions = {
   byMonth: () => api.get('/transactions/by-month'),
   byQuarter: () => api.get('/transactions/by-quarter'),
   byYear: () => api.get('/transactions/by-year'),
+
+  setActiveRepeat: (id, active) =>
+    api.put(`/transactions/${id}/activeRepeat`, null, { params: { active } }),
+
+  setRepeatActive: (id, active) =>
+    api.patch(`/transactions/${id}/repeat`, null, { params: { active } }),
+
+  stopAllRepeats: ({ userId, walletId }) =>
+    api.post('/transactions/stop-all-repeats', null, {
+      params: { userId, walletId }
+    }),
 }
 
 export const Stats = {
@@ -70,3 +83,19 @@ export const Stats = {
   topExpenses: (params) => api.get('/stats/top-expenses', { params }),
 }
 
+export const Categories = {
+  getForUser: (userId) => api.get( `/categories/${userId}`, { params: { userId } }),
+  create: (payload) =>
+    api.post(`/categories/createCategory`, payload),
+  update: (payload) =>
+    api.put(`/categories/updateCategory`, payload),
+  remove: (id) => api.delete(`/categories/${id}`),
+}
+
+export const Goal = {
+  getByWallet: (walletId) =>
+    api.get('/goals/by-wallet', { params: { walletId } }),
+
+  create: (payload) =>
+    api.post('/goals/createGoal', payload),
+};

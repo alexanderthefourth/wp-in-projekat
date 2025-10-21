@@ -33,7 +33,7 @@ public class Wallet{
 
     private boolean savingsWallet;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "wallet_id")
+    @JoinColumn(name = "goal_id")
     @Nullable
     private Goal goal;
 

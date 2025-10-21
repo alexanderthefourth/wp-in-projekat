@@ -8,10 +8,10 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class CreateGoalDTO {
+    private int walletId;
     private String name;
     private BigDecimal targetAmount;
     private LocalDate deadline;
-    private int walletId;
 
     public CreateGoalDTO(){}
 }

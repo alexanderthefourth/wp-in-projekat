@@ -75,20 +75,11 @@ public class WalletService {
         return new WalletCreatedDTO(w.getId(), w.getName());
     }
 
-
     @Transactional(readOnly = true)
     public List<Wallet> getWalletsForUser(int userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Nepostojeći korisnik: " + userId));
         return user.getWalletList() == null ? List.of() : user.getWalletList();
-    }
-
-    private Currency resolveCurrency(CurrencyDTO dto) {
-        if (dto == null || dto.getName() == null) {
-            throw new IllegalArgumentException("Valuta je obavezna");
-        }
-        return currencyRepository.findByName(dto.getName())
-                .orElseThrow(() -> new IllegalArgumentException("Nepostojeća valuta: " + dto.getName()));
     }
 
     public WalletDTO updateName(int id, String name) {

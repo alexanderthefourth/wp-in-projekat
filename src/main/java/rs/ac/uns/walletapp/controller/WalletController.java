@@ -27,6 +27,7 @@ import rs.ac.uns.walletapp.dto.WalletCreatedDTO;
 import rs.ac.uns.walletapp.dto.WalletDTO;
 import rs.ac.uns.walletapp.interfaces.ShowWalletInterface;
 import rs.ac.uns.walletapp.model.Currency;
+import rs.ac.uns.walletapp.model.Goal;
 import rs.ac.uns.walletapp.model.Transaction;
 import rs.ac.uns.walletapp.model.Transfer;
 import rs.ac.uns.walletapp.model.User;
@@ -71,6 +72,14 @@ public class WalletController {
             w.setCreationDate(dto.getCreatingDate());
             w.setArchived(dto.isArchived());
             w.setSavingsWallet(dto.isSavings());
+
+            if (dto.getGoal() != null) {
+                Goal g = new Goal();
+                g.setName(dto.getGoal().getName());
+                g.setTargetAmount(dto.getGoal().getTargetAmount());
+                g.setDeadline(dto.getGoal().getDeadline());
+                w.setGoal(g);
+            }
 
             if (dto.getCurrency() != null && dto.getCurrency().getName() != null && !dto.getCurrency().getName().isBlank()) {
                 Currency curr = currencyRepository.findById(dto.getCurrency().getName()).orElse(null);

@@ -18,6 +18,8 @@ import org.springframework.stereotype.Repository;
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
     List<Transaction> findAllByRepeatableTrueAndActiveRepeatTrue();
 
+    List<Transaction> findAllByRepeatableTrueAndActiveRepeatTrueAndFrequencyIgnoreCase(String frequency);
+
     List<Transaction> findByUser_Id(Integer userId);
 
     List<Transaction> findByCategory_Id(Integer categoryId);
@@ -55,4 +57,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findTop10ByDateOfExecutionBetweenOrderByAmountDesc(LocalDate start, LocalDate end);
 
     List<Transaction> findTop10ByDateOfExecutionOrderByAmountDesc(LocalDate date);
+
+    List<Transaction> findAllByWalletIdAndRepeatableTrueAndActiveRepeatTrue(int walletId);
+
+    List<Transaction> findAllByUserIdAndRepeatableTrueAndActiveRepeatTrue(int userId);
+    List<Transaction> findByUserIdAndWalletIdAndRepeatableTrueAndActiveRepeatTrue(int userId, int walletId);
+
 }

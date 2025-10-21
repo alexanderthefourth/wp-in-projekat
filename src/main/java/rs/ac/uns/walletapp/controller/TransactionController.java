@@ -43,6 +43,32 @@ public class TransactionController {
         }
     }
 
+    @PatchMapping("{id}/repeat")
+    public ResponseEntity<Void> setRepeatActive(
+        @PathVariable int id,
+        @RequestParam boolean active
+    ) {
+        try {
+            boolean ok = transactionService.setRepeatActive(id, active);
+            return ok ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("stop-all-repeats")
+        public ResponseEntity<Void> stopAllRepeats(
+        @RequestParam int userId,
+        @RequestParam(required = false) Integer walletId
+    ) {
+        try {
+            transactionService.stopAllRepeats(userId, walletId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     @GetMapping("/top-expenses")
     public ResponseEntity<List<TopExpenseDTO>> getTop10Expenses(@RequestParam int userId, @RequestParam String startDate, @RequestParam String endDate) {
         LocalDate start = LocalDate.parse(startDate);

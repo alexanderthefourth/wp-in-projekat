@@ -2,12 +2,16 @@
   <div class="top-row">
   <UiCard class="tile balans" v-if="wallet">
     <h2 style="margin: 0">
-      <strong>{{ money(saved, currency) }}</strong>
-      <span v-if="targetAmount"> / {{ money(targetAmount, currency) }}</span>
+      <strong>
+        {{ money(saved, currency) }}
+        <template v-if="wallet.goal && targetAmount">
+          / {{ money(targetAmount, currency) }}
+        </template>
+      </strong>
     </h2>
-    <div style="color: var(--ink-muted); margin-top: 8px">
-      <div><strong>{{ wallet.name }}</strong> — #{{ wallet.id }}</div>
-      <div>Valuta: {{ wallet?.currency?.name || '—' }} · Tip: {{ wallet?.savings ? 'Štednja' : 'Standard' }}</div>
+    <div class="muted" style="margin-top: 8px">
+      <div><strong>{{ wallet.name }}</strong></div>
+      <div>Valuta: {{ wallet?.currency?.name || '—' }} · Tip: {{ (wallet?.savingsWallet ?? wallet?.savings) ? 'Štednja' : 'Standard' }}</div>
     </div>
   </UiCard>
 
@@ -15,22 +19,6 @@
     <h2 style="margin: 0"><strong>—</strong></h2>
     <div style="color: var(--ink-muted); margin-top: 8px">
       Izaberite novčanik iz liste da prikažete detalje.
-    </div>
-  </UiCard>
-
-  <UiCard v-if="wallet?.goal" class="tile goal-card">
-    <strong>{{ wallet.goal.name }}</strong>
-    <div class="flex" style="align-items: center; gap: 18px; margin-top: 10px">
-      <ProgressRing class="progress-ring" :value="progressPct" />
-      <div>
-        <div>
-          <strong>{{ money(saved, currency) }}</strong>
-          <span> / {{ money(targetAmount, currency) }}</span>
-        </div>
-        <div style="color: var(--ink-muted)">
-          Novčanik: {{ wallet?.savings ? 'Štednja' : 'Standard' }}
-        </div>
-      </div>
     </div>
   </UiCard>
 </div>
@@ -51,31 +39,55 @@
 <UiCard v-if="wallet" style="margin-top: 16px;">
   <div class="flex-between" style="margin-bottom: 8px;">
     <strong>Transakcije</strong>
-    <span class="muted" v-if="txRows?.length">{{ txRows.length }} stavki</span>
+    <div class="flex" style="gap:8px; align-items:center;">
+      <span class="muted" v-if="txRows?.length">{{ txRows.length }} stavki</span>
+      <button class="btn warn" :disabled="stopAllBusy" @click="stopAllRepeats">
+        {{ stopAllBusy ? 'Zaustavljam…' : 'Zaustavi sva ponavljanja' }}
+      </button>
+    </div>
   </div>
 
   <div v-if="txRows && txRows.length">
     <table class="tx-table">
-      <thead>
-        <tr>
-          <th>Datum</th>
-          <th>Naziv</th>
-          <th>Tip</th>
-          <th>Iznos</th>
-          <th>Izvor</th>
-          <th>Cilj</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="t in txRows" :key="t.id">
-          <td>{{ (t.dateOfExecution || t.createdAt || '').toString().slice(0,10) }}</td>
-          <td>{{ t.transactionName || '—' }}</td>
-          <td>{{ t.type === 'INCOME' ? 'Prihod' : t.type === 'EXPENSE' ? 'Rashod' : (t.type || '—') }}</td>
-          <td>{{ money(Number(t.amount || 0), currency) }}</td>
-          <td>#{{ t.sourceWalletId ?? t.sourceId ?? '—' }}</td>
-          <td>#{{ t.targetWalletId ?? t.targetId ?? '—' }}</td>
-        </tr>
-      </tbody>
+          <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Naziv</th>
+        <th>Tip</th>
+        <th>Iznos</th>
+        <th>Izvor</th>
+        <th>Cilj</th>
+        <th>Ponavljanje</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="t in txRows" :key="t.id">
+        <td>{{ (t.dateOfExecution || t.createdAt || '').toString().slice(0,10) }}</td>
+        <td>{{ t.name || t.transactionName || '—' }}</td>
+        <td>{{ t.type === 'INCOME' ? 'Prihod' : t.type === 'EXPENSE' ? 'Rashod' : (t.type || '—') }}</td>
+        <td>{{ money(Number(t.amount || 0), currency) }}</td>
+        <td>#{{ t.sourceWalletId ?? t.sourceId ?? '—' }}</td>
+        <td>#{{ t.targetWalletId ?? t.targetId ?? '—' }}</td>
+
+        <td>
+      <template v-if="t.repeatable !== undefined">
+        <span :class="t.activeRepeat ? 'pill pill-soft' : 'pill'">
+          {{ t.activeRepeat ? 'Aktivno' : 'Neaktivno' }}
+        </span>
+        <button
+          class="btn"
+          style="margin-left:8px"
+          @click="toggleRepeat(t)"
+        >
+          {{ repeatTogglingId === t.id ? '...' : (t.activeRepeat ? 'Zaustavi' : 'Aktiviraj') }}
+        </button>
+      </template>
+      <template v-else>
+        <span class="muted">—</span>
+      </template>
+    </td>
+      </tr>
+    </tbody>
     </table>
   </div>
 
@@ -107,7 +119,6 @@
 
         <div v-if="editingWalletId !== w.id" class="wallet-title">
           <strong>{{ w.name }}</strong>
-          <span class="muted">#{{ w.id }}</span>
         </div>
 
         <div v-else class="wallet-edit-grid" @click.stop>
@@ -124,9 +135,23 @@
         </div>
       </div>
 
-      <div class="wallet-meta">
-        <span class="pill">{{ w.currencyName || w.currency?.name || '—' }}</span>
-        <span v-if="w.savings" class="pill pill-soft">Štednja</span>
+      <div
+          v-if="isSavingsWallet(w) && hasGoal(w)"
+          class="goal-chip"
+          @click.stop
+        >
+          <ProgressRing :value="goalPct(w)" :size="52" />
+          <div class="goal-chip-text">
+            <div class="muted">Cilj</div>
+            <div class="tight">
+              <strong>{{ money(Number(w.currBal ?? 0), w.currency?.name || w.currencyName || 'RSD') }}</strong>
+              <span>
+                /
+                {{ money(Number(w.goal.targetAmount ?? w.goal.target_amount ?? 0), w.currency?.name || w.currencyName || 'RSD') }}
+              </span>
+            </div>
+          </div>
+        </div>
 
         <div class="wallet-actions" @click.stop>
           <template v-if="editingWalletId !== w.id">
@@ -152,7 +177,6 @@
     <div v-if="!activeWallets.length" class="muted">
       Nema aktivnih novčanika.
     </div>
-  </div>
 
   <div v-if="walletEditConversionPreview" class="muted conversion-preview">
     {{ walletEditConversionPreview }}
@@ -174,14 +198,11 @@
         <input type="radio" disabled />
         <div class="wallet-title">
           <strong>{{ w.name }}</strong>
-          <span class="muted">#{{ w.id }}</span>
         </div>
       </div>
 
       <div class="wallet-meta">
         <span class="pill">{{ w.currencyName || w.currency?.name || '—' }}</span>
-        <span v-if="w.savings" class="pill pill-soft">Štednja</span>
-
         <button
           class="btn"
           style="margin-left: 8px;"
@@ -214,8 +235,15 @@
           <option value="USD">USD</option>
         </select>
         <label class="check">
-          <input type="checkbox" v-model="walletForm.savings" /> Štedni novčanik
+          <input type="checkbox" v-model="walletForm.savingsWallet" /> Štedni novčanik
         </label>
+
+        <div v-if="walletForm.savingsWallet" class="form-grid" style="grid-template-columns: repeat(3, minmax(220px, 1fr));">
+          <input v-model="walletForm.goalName" placeholder="Naziv cilja" />
+          <input type="number" min="0" step="0.01" v-model.number="walletForm.goalTarget" placeholder="Ciljni iznos" />
+          <input type="date" v-model="walletForm.goalDeadline" placeholder="Rok" />
+        </div>
+
         <div class="form-actions">
           <button class="btn accent" :disabled="walletSaving" @click="submitWallet">
             {{ walletSaving ? 'Čuvanje…' : 'Kreiraj' }}
@@ -267,7 +295,7 @@
         :value="opt.id"
         :disabled="opt.id === sourceWalletId"
       >
-        {{ opt.name }} ({{ opt.currencyName || opt.currency?.name || '—' }}) — #{{ opt.id }}
+        {{ opt.name }} ({{ opt.currencyName || opt.currency?.name || '—' }})
       </option>
     </select>
 
@@ -292,7 +320,16 @@
       <input type="checkbox" v-model="transferForm.activeRepeat" :disabled="!transferForm.repeatable" />
       Aktivna
     </label>
+
     <input v-model="transferForm.frequency" :disabled="!transferForm.repeatable" placeholder="Frekvencija (npr. P1M)" />
+
+    <select v-model="transferForm.frequency" :disabled="!transferForm.repeatable">
+      <option value="">— Odaberite učestalost —</option>
+      <option value="DAILY">Svakog dana</option>
+      <option value="WEEKLY">Nedeljno</option>
+      <option value="MONTHLY">Mesečno</option>
+      <option value="EVERY_2_MIN">Svakih 2 min (test)</option>
+    </select>
 
     <div class="form-actions">
       <button class="btn" :disabled="transferSaving" @click="submitTransfer">
@@ -300,6 +337,29 @@
       </button>
       <span v-if="transferError" class="err">{{ transferError }}</span>
     </div>
+
+    <!-- Category selection for this transaction -->
+    <select v-model="transferForm.categoryId">
+      <option :value="null">— Bez kategorije —</option>
+      <option v-for="c in categories" :key="c.id" :value="c.id">
+        {{ c.name }} ({{ c.type }})
+      </option>
+    </select>
+
+    <!-- Inline “Create new category” row (optional) -->
+    <div class="flex" style="gap:8px; align-items:center;">
+      <input v-model="newCatName" placeholder="Nova kategorija" style="min-width: 200px;" />
+      <select v-model="newCatType" style="min-width: 140px;">
+        <option value="INCOME">Prihod</option>
+        <option value="EXPENSE">Rashod</option>
+      </select>
+      <button class="btn" :disabled="creatingCat" @click.prevent="createCategoryInline">
+        {{ creatingCat ? 'Dodajem…' : 'Dodaj kategoriju' }}
+      </button>
+    </div>
+    <div v-if="catLoading" class="muted">Učitavanje kategorija…</div>
+    <div v-if="catError" class="err">{{ catError }}</div>
+
   </div>
 </UiCard>
 
@@ -351,6 +411,22 @@
   </div>
 </UiCard>
 
+<UiCard style="margin-top: 20px;">
+  <h3>Uredi profil</h3>
+  <div class="form-grid">
+    <input v-model="editUserForm.firstName" placeholder="Ime" />
+    <input v-model="editUserForm.lastName" placeholder="Prezime" />
+    <input v-model="editUserForm.email" type="email" placeholder="Email" />
+    <input v-model="editUserForm.birthDate" type="date" placeholder="Datum rođenja" />
+    <div class="form-actions">
+      <button class="btn accent" :disabled="savingUser" @click="saveUserProfile">
+        {{ savingUser ? 'Čuvanje…' : 'Sačuvaj promene' }}
+      </button>
+      <span v-if="userError" class="err">{{ userError }}</span>
+    </div>
+  </div>
+</UiCard>
+
 </template>
 
 <script setup>
@@ -360,11 +436,15 @@ import { Stats } from '../services/api'
 import ProgressRing from '../components/ProgressRing.vue'
 import { Wallets, Transactions } from '../services/api'
 import Chart from 'chart.js/auto'
+import { Users } from '../services/api'
+import { Categories, Goal } from '../services/api'
+
 
 const showTransfer = ref(false)
 const showCreateWallet = ref(false)
 const today = new Date().toISOString().slice(0, 10)
-const walletForm = ref({name: '', initBal: '', currency: '', savings: false,})
+const walletForm = ref({name: '', initBal: '', currency: '', savingsWallet: false, goalEnabled: false, goalName: '', goalAmount: null, goalDeadline: ''})
+
 const walletSaving = ref(false)
 const walletError = ref('')
 const transferForm = ref({
@@ -376,6 +456,7 @@ const transferForm = ref({
   repeatable: false,
   activeRepeat: false,
   frequency: '',
+  categoryId: null,
 })
 const userWallets = ref([])
 const sourceWalletId = ref(null)
@@ -396,7 +477,6 @@ const user = JSON.parse(localStorage.getItem('user') || '{}')
 const userId = user?.id
 const currency = computed(() => wallet.value?.currency?.name || 'RSD')
 const saved = computed(() => Number(balance.value ?? wallet.value?.currBal ?? 0))
-const targetAmount = computed(() => Number(wallet.value?.goal?.targetAmount ?? 0))
 const progressPct = computed(() =>
   !targetAmount.value || targetAmount.value <= 0
     ? 0
@@ -422,6 +502,175 @@ const archivedWallets = computed(() => userWallets.value.filter(w => w.archived)
 const walletEditForm   = ref({ name: '', currency: '', savings: false })
 const savingWallet     = ref(false)
 const walletSaveError  = ref('')
+const savingsTogglingId = ref(null)
+
+const categories = ref([])
+const categoryLoading = ref(false)
+const catError = ref('')
+const newCat = ref({ name: '', type: 'EXPENSE' })
+const showNewCat = ref(false)
+
+const incomeCategories = computed(() => categories.value.filter(c => c.type === 'INCOME'))
+const expenseCategories = computed(() => categories.value.filter(c => c.type === 'EXPENSE'))
+const catLoading     = ref(false)
+const creatingCat    = ref(false)
+const newCatName     = ref('')
+const newCatType     = ref('EXPENSE')
+
+const repeatTogglingId = ref(null)
+
+const liveOn = ref(true)
+const liveRefreshSec = ref(15)
+let liveTimer = null
+const stopAllBusy = ref(false)
+
+
+async function liveTick() {
+  if (!liveOn.value) return
+  if (!sourceWalletId.value) return
+  try {
+    await loadWalletBundle(sourceWalletId.value)
+  } catch (e) {
+    console.debug('liveTick failed:', e?.response?.data || e)
+  }
+}
+
+function startLive() {
+  stopLive()
+  liveTimer = setInterval(liveTick, liveRefreshSec.value * 1000)
+}
+
+function stopLive() {
+  if (liveTimer) {
+    clearInterval(liveTimer)
+    liveTimer = null
+  }
+}
+
+function handleVisibility() {
+  if (document.hidden) stopLive()
+  else if (liveOn.value) startLive()
+}
+
+watch(liveOn, (v) => { v ? startLive() : stopLive() })
+watch(liveRefreshSec, () => { if (liveOn.value) startLive() })
+
+async function afterDataChangeReload() {
+  if (sourceWalletId.value) await loadWalletBundle(sourceWalletId.value)
+}
+
+async function toggleRepeat(t) {
+  if (!t?.id || !t.repeatable) return
+  try {
+    repeatTogglingId.value = t.id
+    const next = !t.activeRepeat
+    await Transactions.setActiveRepeat(t.id, next)
+    t.activeRepeat = next
+  } catch (e) {
+    console.error('toggleRepeat failed:', e?.response?.data || e)
+    alert('Greška pri promeni statusa ponavljanja.')
+  } finally {
+    repeatTogglingId.value = null
+  }
+}
+
+async function stopAllRepeats() {
+  if (stopAllBusy.value) return;
+  stopAllBusy.value = true;
+  try {
+    await Transactions.stopAllRepeats({ userId, walletId: sourceWalletId.value || undefined });
+    // refresh transactions & balance so the UI reflects inactive repeats
+    if (sourceWalletId.value) {
+      await loadWalletBundle(sourceWalletId.value);
+      await loadStats(); // optional, if your charts should also reflect changes
+    }
+  } catch (e) {
+    console.error('stopAllRepeats failed:', e?.response?.data || e);
+    alert('Greška: nije moguće zaustaviti ponavljanja.');
+  } finally {
+    stopAllBusy.value = false;
+  }
+}
+
+async function loadCategories() {
+  try {
+    catLoading.value = true
+    const { data } = await Categories.getForUser(userId)
+    categories.value = data || []
+  } catch (e) {
+    console.error('loadCategories failed:', e?.response?.data || e)
+    catError.value = 'Greška pri učitavanju kategorija.'
+  } finally {
+    catLoading.value = false
+  }
+}
+
+async function createCategoryInline() {
+  const name = (newCatName.value || '').trim()
+  const type = newCatType.value || 'EXPENSE'
+  if (!name) return
+  try {
+    creatingCat.value = true
+    await Categories.create({ userId, name, type })
+    newCatName.value = ''
+    await loadCategories()
+    const created = categories.value.find(c => c.name === name && c.type === type)
+    if (created) transferForm.value.categoryId = created.id
+  } catch (e) {
+    console.error('createCategoryInline failed:', e?.response?.data || e)
+    alert('Greška pri kreiranju kategorije.')
+  } finally {
+    creatingCat.value = false
+  }
+}
+
+function isSavingsWallet(w) {
+  return w?.savingsWallet === true
+      || w?.savings_wallet === true
+      || w?.savings === true;
+}
+function readTargetAmount(w) {
+  const g = w?.goal;
+  const raw =
+    g?.targetAmount ??
+    g?.target_amount ??
+    w?.targetAmount ??
+    w?.target_amount ??
+    null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+const isSavings = computed(() => isSavingsWallet(wallet.value));
+const targetAmount = computed(() => {
+  const g = wallet.value?.goal || {}
+  const raw =
+    g.targetAmount ??
+    g.target_amount ??
+    wallet.value?.targetAmount ??
+    wallet.value?.target_amount ??
+    0
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : 0
+})
+
+
+function goalPct(w) {
+  const target = Number(w?.goal?.targetAmount ?? 0)
+  const current = Number(w?.currBal ?? 0)
+  if (!target || target <= 0) return 0
+  return Math.max(0, Math.min(100, Math.round((current / target) * 100)))
+}
+
+const editUserForm = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  birthDate: '',
+})
+
+const savingUser = ref(false)
+const userError = ref('')
 
 function selectSource(id) {
   const w = userWallets.value.find(x => x.id === id)
@@ -474,6 +723,24 @@ function cancelEdit() {
   walletEditForm.value = { name: '', currency: 'RSD', savings: false }
 }
 
+async function enableGoal(w) {
+  if (!w?.id) return
+  try {
+    savingsTogglingId.value = w.id
+    await Wallets.updateSavings(w.id, true)
+    await loadUserWallets()
+
+    if (sourceWalletId.value === w.id) {
+      await loadWalletBundle(w.id)
+    }
+  } catch (e) {
+    console.error('enableGoal failed:', e?.response?.data || e)
+    alert('Greška pri aktiviranju cilja za ovaj novčanik.')
+  } finally {
+    savingsTogglingId.value = null
+  }
+}
+
 async function toggleArchive(w) {
   try {
     archivingId.value = w.id
@@ -504,28 +771,17 @@ async function deleteWalletApi(id) {
 async function saveWallet(w) {
   walletSaveError.value = ''
   if (!w?.id) return
-
   try {
     savingWallet.value = true
 
     const oldName = w.name ?? ''
     const oldCur  = w.currency?.name ?? w.currencyName ?? ''
-    const oldSav  = !!w.savings
-
     const newName = (walletEditForm.value.name ?? '').trim()
     const newCur  = walletEditForm.value.currency ?? ''
-    const newSav  = !!walletEditForm.value.savings
 
     const ops = []
-    if (newName && newName !== oldName) {
-      ops.push(Wallets.updateName(w.id, newName))
-    }
-    if (newCur && newCur !== oldCur) {
-      ops.push(Wallets.updateCurrency(w.id, newCur))
-    }
-    if (newSav !== oldSav) {
-      ops.push(Wallets.updateSavings(w.id, newSav))
-    }
+    if (newName && newName !== oldName) ops.push(Wallets.updateName(w.id, newName))
+    if (newCur && newCur !== oldCur)   ops.push(Wallets.updateCurrency(w.id, newCur))
 
     if (ops.length) {
       await Promise.all(ops)
@@ -537,8 +793,6 @@ async function saveWallet(w) {
         await loadWalletBundle(updated.id)
       }
     }
-
-    editingWalletId.value = null
   } catch (e) {
     console.error('saveWallet failed:', e?.response?.data || e)
     walletSaveError.value = 'Greška pri čuvanju izmena.'
@@ -577,6 +831,31 @@ function chartOrCreate(ctxId, cfg) {
   if (ctxId === 'seriesChart') { if (seriesChart) seriesChart.destroy(); seriesChart = new Chart(el, cfg); return seriesChart }
   if (ctxId === 'catChart')    { if (catChart) catChart.destroy();     catChart    = new Chart(el, cfg);   return catChart }
   return null
+}
+
+async function saveUserProfile() {
+  userError.value = ''
+  try {
+    savingUser.value = true
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    const { data } = await Users.updateProfile(user.id, editUserForm.value)
+
+    localStorage.setItem('user', JSON.stringify(data))
+
+    alert('Profil uspešno ažuriran!')
+
+    editUserForm.value = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      birthDate: '',
+    }
+  } catch (e) {
+    console.error('updateProfile failed', e)
+    userError.value = 'Greška pri čuvanju profila.'
+  } finally {
+    savingUser.value = false
+  }
 }
 
 async function loadStats() {
@@ -688,8 +967,26 @@ async function submitTransfer() {
       repeatable: !!transferForm.value.repeatable,
       activeRepeat: !!transferForm.value.activeRepeat,
       frequency: transferForm.value.frequency || null,
+      categoryId: transferForm.value.categoryId || null,
+      userId,
     }
-    await Transactions.move(payload)
+
+    if (targetId) {
+      await Transactions.move(payload)
+    } else {
+      await Transactions.create({
+        walletId: sourceId,
+        name: payload.transactionName,
+        amount: payload.amount,
+        type: payload.type,
+        dateOfExecution: payload.dateOfExecution,
+        repeatable: payload.repeatable,
+        activeRepeat: payload.activeRepeat,
+        frequency: payload.frequency,
+        categoryId: payload.categoryId,
+        userId: payload.userId,
+      })
+    }
     transferForm.value = {
       targetWalletId: null,
       amount: '',
@@ -699,6 +996,7 @@ async function submitTransfer() {
       repeatable: false,
       activeRepeat: false,
       frequency: '',
+      categoryId: null,
     }
     showTransfer.value = false
   } catch (e) {
@@ -707,11 +1005,12 @@ async function submitTransfer() {
   } finally {
     transferSaving.value = false
   }
+  await afterDataChangeReload()
+
 }
 
 async function submitWallet() {
   walletError.value = ''
-
   if (!walletForm.value.name || !walletForm.value.initBal || !walletForm.value.currency) {
     walletError.value = 'Popunite naziv, balans i valutu.'
     return
@@ -727,23 +1026,37 @@ async function submitWallet() {
       currency: { name: walletForm.value.currency },
       creatingDate: today,
       archived: false,
-      savings: walletForm.value.savings,
-      goal: null,
+      savingsWallet: !!walletForm.value.savingsWallet,
+      savings:       !!walletForm.value.savingsWallet,
     }
 
-    await Wallets.create(userId, payload)
+    const { data: created } = await Wallets.create(userId, payload)
+    const newWalletId = created?.id ?? created?.wallet?.id
+    if (!newWalletId) {
+      throw new Error('Nema ID novčanika u odgovoru.')
+    }
+
+    if (walletForm.value.savingsWallet && Number(walletForm.value.goalTarget) > 0) {
+      await Goal.create({
+        walletId: newWalletId,
+        name: walletForm.value.goalName || 'Cilj štednje',
+        targetAmount: walletForm.value.goalTarget,
+        deadline: walletForm.value.goalDeadline || null,
+      })
+    }
 
     await loadUserWallets()
+    sourceWalletId.value = newWalletId
+    await loadWalletBundle(newWalletId)
 
-    if (userWallets.value.length) {
-      sourceWalletId.value = userWallets.value[userWallets.value.length - 1].id
+    walletForm.value = {
+      name: '', initBal: '', currency: '',
+      savingsWallet: false, goalName: '', goalTarget: null, goalDeadline: ''
     }
-
-    walletForm.value = { name: '', initBal: '', currency: '', savings: false }
     showCreateWallet.value = false
   } catch (e) {
-    console.error('create wallet failed:', e?.response?.status, e?.response?.data || e)
-    walletError.value = 'Greška pri kreiranju novčanika.'
+    console.error('create wallet/goal failed:', e?.response?.status, e?.response?.data || e)
+    walletError.value = 'Greška pri kreiranju novčanika ili cilja.'
   } finally {
     walletSaving.value = false
   }
@@ -784,9 +1097,38 @@ async function loadWalletBundle(id) {
 
     wallet.value = w;
     balance.value = bal;
-    txRows.value = tr || [];
+    txRows.value = (tr || []).map(t => ({
+      id: t.id ?? t.transactionId ?? t.txId,
+      name: t.name ?? t.transactionName ?? '—',
+      type: t.type ?? t.type2 ?? null,
+      amount: Number(t.amount ?? 0),
+      sourceWalletId: t.sourceWalletId ?? t.sourceId ?? null,
+      targetWalletId: t.targetWalletId ?? t.targetId ?? null,
+      dateOfExecution: t.dateOfExecution ?? t.createdAt ?? null,
+      repeatable: !!(t.repeatable ?? t.isRepeatable ?? t.repeat),
+      activeRepeat: !!(t.activeRepeat ?? t.isActiveRepeat ?? t.active),
+      frequency: t.frequency ?? t.freq ?? null,
+    }));
+
+
+    const g = w?.goal || null
+    wallet.value = {
+      ...w,
+      goal: g
+        ? {
+            ...g,
+            targetAmount: Number(g.targetAmount ?? g.target_amount ?? 0),
+            name: g.name ?? g.goal_name ?? 'Cilj',
+          }
+        : null,
+    }
 
     console.log('bundle:', { id, period: period.value, range, txCount: txRows.value.length })
+    console.log('[wallet]', {
+      savingsWallet: wallet.value?.savingsWallet ?? wallet.value?.savings_wallet ?? wallet.value?.savings,
+      goal: wallet.value?.goal,
+      targetAmount: readTargetAmount(wallet.value),
+    });
   } catch (e) {
     console.error('loadWalletBundle failed:', e?.response?.status, e?.response?.data || e)
     error.value = 'Greška pri učitavanju novčanika.';
@@ -801,6 +1143,7 @@ watch([period, anchor, sourceWalletId], async () => {
 
 onMounted(async () => {
   await loadUserWallets()
+  await loadCategories();
   if (userWallets.value.length) {
     sourceWalletId.value = userWallets.value[0].id;
     await loadWalletBundle(sourceWalletId.value);
@@ -810,6 +1153,22 @@ onMounted(async () => {
     from.value = start.toISOString().slice(0,10)
     to.value   = end.toISOString().slice(0,10)
     await loadStats()
+  }
+
+  document.addEventListener('visibilitychange', handleVisibility)
+  if (liveOn.value) startLive()
+
+  document.removeEventListener('visibilitychange', handleVisibility)
+  stopLive()
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  if (user) {
+    editUserForm.value = {
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      birthDate: user.birthDate || '',
+    }
   }
 })
 
@@ -952,4 +1311,35 @@ function money(val, cur) {
 .grid2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
 
 .conversion-preview { margin-top: 6px; }
+
+.goal-chip {
+  display: flex; gap: 8px; align-items: center;
+  padding: 6px 8px; border: 1px solid var(--line);
+  border-radius: 12px; background: #fffaf3;
+}
+.goal-chip-text .tight { line-height: 1.2; }
+
+.tx-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.tx-table thead th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.tx-table th,
+.tx-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.tx-table tbody tr:hover {
+  background: #f9fafb;
+}
 </style>
