@@ -288,7 +288,7 @@
             <tbody>
             <tr v-for="transaction in filteredTransactions" :key="transaction.id">
               <td>{{ transaction.id }}</td>
-              <td>{{ transaction.user.firstName }} {{ transaction.user.lastName }}</td>
+              <td>{{ transaction.user ? `${transaction.user.firstName} ${transaction.user.lastName}` : 'N/A' }}</td>
               <td>{{ transaction.name }}</td>
               <td :class="{ 'negative': transaction.amount < 0 }">
                 {{ formatAmount(transaction.amount) }}
@@ -552,23 +552,38 @@ async function loadAllTransactions() {
 
 async function applyFilters() {
   try {
+    // ✅ Nađi username za izabranog korisnika (backend očekuje username, ne userId)
+    const selectedUser = users.value.find(u => u.id === filters.value.userId);
+
+    // ✅ Formiraj parametre
     const params = {
-      userId: filters.value.userId || null,
-      categoryName: filters.value.categoryName || null,
-      minAmount: filters.value.minAmount || null,
-      maxAmount: filters.value.maxAmount || null,
-      date: filters.value.date || null
+      username: selectedUser ? selectedUser.username : undefined,
+      categoryName: filters.value.categoryName || undefined,
+      minAmount: filters.value.minAmount || undefined,
+      maxAmount: filters.value.maxAmount || undefined,
+      date: filters.value.date || undefined
     };
 
+    // ✅ Očisti prazne vrednosti da ne šalješ null/string "undefined"
+    Object.keys(params).forEach(
+      (key) => params[key] === undefined && delete params[key]
+    );
+
     console.log('Primenjujem filtere:', params);
+
+    // ✅ Pozovi API sa čistim parametrima
     const { data } = await Transactions.all(params);
     allTransactions.value = data;
+
+    console.log('Filtrirane transakcije:', data);
   } catch (error) {
     console.error("Greška pri filtriranju transakcija:", error);
     console.error("Status:", error.response?.status);
     console.error("Data:", error.response?.data);
+    alert("Došlo je do greške pri filtriranju transakcija.");
   }
 }
+
 
 function resetFilters() {
   filters.value = {

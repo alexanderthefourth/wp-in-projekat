@@ -70,7 +70,7 @@ public class TransactionController {
             @RequestParam(required = false) BigDecimal maxAmount,
             @RequestParam(required = false) String date) {
         try {
-            LocalDate filterDate = date != null ? LocalDate.parse(date) : null;
+            LocalDate filterDate = (date != null && !date.isBlank()) ? LocalDate.parse(date) : null;
 
             List<Transaction> transactions = transactionService.filterTransactions(
                     username, categoryName, minAmount, maxAmount, filterDate
