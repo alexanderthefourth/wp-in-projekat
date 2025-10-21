@@ -1,64 +1,116 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import RegisteredUser from '@/views/RegisteredUser.vue'
-import RegisteredAdmin from '@/views/RegisteredAdmin.vue'
-import LoginView from '@/views/LoginView.vue'
-import RegisterView from '@/views/RegisterView.vue'
-import BlockedUser from '@/views/BlockedUser.vue'
+import { createRouter, createWebHistory } from "vue-router";
+import RegisteredUser from "@/views/RegisteredUser.vue";
+import RegisteredAdmin from "@/views/RegisteredAdmin.vue";
+import LoginView from "@/views/LoginView.vue";
+import RegisterView from "@/views/RegisterView.vue";
+import BlockedUser from "@/views/BlockedUser.vue";
+import { Users } from "@/services/api.js";
 
 const routes = [
-  { path: '/', redirect: '/login' },
-  { path: '/registered', name: 'registered', component: RegisteredUser },
-  { path: '/registered-admin', name: 'registered-admin', component: RegisteredAdmin },
-  { path: '/login', name: 'login', component: LoginView },
-  { path: '/register', name: 'register', component: RegisterView },
-  { path: '/blocked', name: 'blocked', component: BlockedUser },
-  { path: '/:pathMatch(.*)*', redirect: '/' },
-]
+  { path: "/", redirect: "/login" },
+
+  {
+    path: "/registered",
+    name: "registered",
+    component: RegisteredUser,
+    meta: { requiresAuth: true, allowedRoles: ["USER", "ADMIN"] },
+  },
+  {
+    path: "/registered-admin",
+    name: "registered-admin",
+    component: RegisteredAdmin,
+    meta: { requiresAuth: true, allowedRoles: ["ADMIN"] },
+  },
+  {
+    path: "/login",
+    name: "login",
+    component: LoginView,
+    meta: { requiresGuest: true },
+  },
+  {
+    path: "/register",
+    name: "register",
+    component: RegisterView,
+    meta: { requiresGuest: true },
+  },
+  {
+    path: "/blocked",
+    name: "blocked",
+    component: BlockedUser,
+  },
+  { path: "/:pathMatch(.*)*", redirect: "/login" },
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-})
+});
 
-router.beforeEach((to) => {
-  const raw = localStorage.getItem('user')
-  const user = raw ? JSON.parse(raw) : null
+async function verifySession() {
+  try {
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
 
-  console.log('Navigation to:', to.path, 'User:', user) // Dodaj ovo za debug
+    const user = JSON.parse(raw);
 
-  // 🔹 Dozvoli login i register uvek
-  if (to.path === '/login' || to.path === '/register') {
-    return true
+    await Users.getAll();
+
+    return user;
+  } catch (error) {
+    console.warn("invalid session, clearing local storage");
+    localStorage.removeItem("user");
+    return null;
+  }
+}
+
+function hasAllowedRole(user, allowedRoles) {
+  return allowedRoles.includes(user.role);
+}
+
+function getDefaultRoute(user) {
+  if (user.blocked) return "/blocked";
+  return user.role === "ADMIN" ? "/registered-admin" : "/registered";
+}
+
+router.beforeEach(async (to) => {
+  const user = await verifySession();
+  //console.log("Navigacija:", to.path, "| Korisnik:", user);
+
+  if (to.meta.requiresGuest) {
+    if (user) {
+      return getDefaultRoute(user);
+    }
+    return true;
   }
 
-  // 🔹 Ako korisnik ne postoji (nije logovan), preusmeri na login
-  if (!user) {
-    return '/login'
+  if (to.meta.requiresAuth) {
+    if (!user) {
+      return "/login";
+    }
+
+    if (user.blocked && to.path !== "/blocked") {
+      return "/blocked";
+    }
+
+    if (to.path === "/blocked" && !user.blocked) {
+      return getDefaultRoute(user);
+    }
+
+    if (to.meta.allowedRoles && !hasAllowedRole(user, to.meta.allowedRoles)) {
+      console.warn("Pristup zabranjen za role:", user.role);
+      return getDefaultRoute(user);
+    }
+
+    return true;
   }
 
-  // 🔹 Ako je blokiran i pokušava da ide bilo gde osim /blocked — prebaci ga tamo
-  if (user.blocked && to.path !== '/blocked') {
-    return '/blocked'
+  if (to.path === "/blocked") {
+    if (!user) return "/login";
+    if (!user.blocked) return getDefaultRoute(user);
+    return true;
   }
 
-  // 🔹 Ako nije blokiran, ali pokušava ručno na /blocked — vrati ga na registered
-  if (to.path === '/blocked' && !user.blocked) {
-    return user.role === 'ADMIN' ? '/registered-admin' : '/registered'
-  }
+  return true;
+});
 
-  // 🔹 Admin ruta - samo admin može pristupiti
-  if (to.path === '/registered-admin' && user.role !== 'ADMIN') {
-    return '/registered' // Ili '/login' ako želiš da ga izbaciš
-  }
-
-  // 🔹 User ruta - običan korisnik ne može pristupiti admin ruti, ali to je već rešeno gore
-  if (to.path === '/registered' && user.role === 'ADMIN') {
-    // Ako je admin a pokušava na user rutu, možeš da ga preusmeriš na admin rutu
-    // ili dozvoliš pristup - zavisi od zahteva
-    return '/registered-admin'
-  }
-
-  return true
-})
-
-export default router
+export default router;

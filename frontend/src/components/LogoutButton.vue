@@ -11,9 +11,10 @@ const router = useRouter();
 async function handleLogout() {
   try {
     await axios.post("http://localhost:8080/api/users/logout", {}, { withCredentials: true });
+    localStorage.removeItem("user");
     router.push("/login");
   } catch (error) {
-    alert("Error during logging out.");
+    alert("Greška prilikom odjavljivanja.");
   }
 }
 </script>
@@ -28,7 +29,6 @@ button {
   cursor: pointer;
   font-weight: bold;
 }
-
 button:hover {
   background-color: #b71c1c;
 }

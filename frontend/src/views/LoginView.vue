@@ -17,39 +17,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from "axios";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
-const username = ref('')
-const password = ref('')
-const errorMessage = ref('')
-const successMessage = ref('')
+const username = ref("");
+const password = ref("");
+const router = useRouter();
 
 async function handleLogin() {
-  errorMessage.value = ''
-  successMessage.value = ''
-
   try {
-    const { data, status } = await axios.post(
-      'http://localhost:8080/api/users/login',
+    const response = await axios.post(
+      "http://localhost:8080/api/users/login",
       { username: username.value, password: password.value },
       { withCredentials: true }
-    )
+    );
 
-    if (status === 200 && data) {
-      localStorage.setItem('user', JSON.stringify(data))
-      if (data.blocked) {
-        router.push('/blocked')
-        return
-      }
-      const isAdmin = data.role === 'ADMIN'
-      router.push(isAdmin ? '/registered-admin' : '/registered')
+    const user = response.data;
+    localStorage.setItem("user", JSON.stringify(user));
+
+    if (user.blocked) {
+      router.push("/blocked");
+      return;
     }
+
+    if (user.role === "ADMIN") router.push("/registered-admin");
+    else router.push("/registered");
   } catch (error) {
-    console.error(error?.response?.data || error)
-    errorMessage.value = 'Pogresan username ili lozinka.'
+    if (error.response?.status === 401) alert("Neispravno korisničko ime ili lozinka!");
+    else alert("Greška prilikom prijavljivanja.");
   }
 }
 </script>
