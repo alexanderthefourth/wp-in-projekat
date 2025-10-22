@@ -36,6 +36,9 @@ public class WalletService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CurrencyConversionService currencyConversionService;
+
     public List<WalletDTO> getAllForUser(int userId) {
         User u = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
@@ -151,6 +154,33 @@ public class WalletService {
         }
         Wallet newWallet = pom.get();
         return new WalletDTO(newWallet);
+    }
+
+    @Transactional
+    public Wallet changeWalletCurrencyAndRecalc(int walletId, String newCode) {
+        Wallet w = walletRepository.findById(walletId)
+                .orElseThrow(() -> new RuntimeException("Novčanik ne postoji"));
+
+        String oldCode = w.getCurrency().getName();
+        if (oldCode.equalsIgnoreCase(newCode)) return w;
+
+        Currency newCur = currencyRepository.findById(newCode)
+                .orElseThrow(() -> new RuntimeException("Nepoznata valuta: " + newCode));
+
+        if (w.getCurrBal() != null) {
+            w.setCurrBal(
+                currencyConversionService.convert(w.getCurrBal(), oldCode, newCode)
+            );
+        }
+        if (w.getInitBal() != null) {
+            w.setInitBal(
+                currencyConversionService.convert(w.getInitBal(), oldCode, newCode)
+            );
+        }
+
+        w.setCurrency(newCur);
+
+        return walletRepository.save(w);
     }
 }
 

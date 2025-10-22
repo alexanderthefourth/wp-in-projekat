@@ -70,7 +70,7 @@ public class TransactionController {
         }
     }
 
-    @GetMapping("/top-expenses")
+    @GetMapping("top-expenses")
     public ResponseEntity<List<TopExpenseDTO>> getTop10Expenses(@RequestParam int userId, @RequestParam String startDate, @RequestParam String endDate) {
         LocalDate start = LocalDate.parse(startDate);
         LocalDate end = LocalDate.parse(endDate);
@@ -90,8 +90,8 @@ public class TransactionController {
 
     @GetMapping("/all")
     public ResponseEntity<List<Transaction>> getAllTransactions(
-            @RequestParam(required = false) String username,        // Promenjeno iz userId u username
-            @RequestParam(required = false) String categoryName,    // Promenjeno iz categoryId u categoryName
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) BigDecimal minAmount,
             @RequestParam(required = false) BigDecimal maxAmount,
             @RequestParam(required = false) String date) {
@@ -99,7 +99,7 @@ public class TransactionController {
             LocalDate filterDate = (date != null && !date.isBlank()) ? LocalDate.parse(date) : null;
 
             List<Transaction> transactions = transactionService.filterTransactions(
-                    username, categoryName, minAmount, maxAmount, filterDate
+                    userId, categoryId, minAmount, maxAmount, filterDate
             );
             return ResponseEntity.ok(transactions);
         } catch (Exception e) {
