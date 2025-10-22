@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -237,5 +238,18 @@ public class WalletController {
 
         return ResponseEntity.ok(rows);
     }
+
+    @PatchMapping("{id}/currency")
+    public ResponseEntity<WalletDTO> changeCurrency(
+            @PathVariable int id,
+            @RequestParam String code) {
+        try {
+            Wallet updated = walletService.changeWalletCurrencyAndRecalc(id, code);
+            return ResponseEntity.ok(new WalletDTO(updated));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+}
+
 }
 

@@ -74,6 +74,8 @@ export const Wallets = {
   archivedUpdate: (id, archived) => api.put(`/wallets/${id}/archivedUpdate`, null, { params: { archived } }),
   updateCurrency: (id, currencyName) => api.put(`/wallets/${id}/currencyUpdate`, null, { params: { currencyName } }),
   remove: (id) => api.delete(`/wallets/${id}/deleteWallet`),
+  updateCurrencyAndRecalc: (id, code) =>
+    api.patch(`/wallets/${id}/currency`, null, { params: { code } }),
 }
 
 export const Transactions = {
@@ -96,13 +98,14 @@ export const Transactions = {
     api.post('/transactions/stop-all-repeats', null, {
       params: { userId, walletId }
     }),
+
+  topExpenses: (params) => api.get(`/transactions/top-expenses`, { params })
 }
 
 export const Stats = {
   summary: (params) => api.get('/stats/summary', { params }),
   series: (params) => api.get('/stats/series', { params }),
   byCategory: (params) => api.get('/stats/by-category', { params }),
-  topExpenses: (params) => api.get('/stats/top-expenses', { params }),
   dashboard: () => api.get('/stats/dashboard'),
 }
 

@@ -55,49 +55,26 @@
         </div>
       </div>
 
-      <div v-if="txRows && txRows.length">
-        <table class="data-table">
+  <div v-if="txRows && txRows.length">
+    <table class="tx-table">
           <thead>
-          <tr>
-            <th>Datum</th>
-            <th>Naziv</th>
-            <th>Tip</th>
-            <th>Iznos</th>
-            <th>Izvor</th>
-            <th>Cilj</th>
-            <th>Ponavljanje</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="t in txRows" :key="t.id">
-            <td>{{ (t.dateOfExecution || t.createdAt || '').toString().slice(0,10) }}</td>
-            <td>{{ t.name || t.transactionName || '—' }}</td>
-            <td>{{ t.type === 'INCOME' ? 'Prihod' : t.type === 'EXPENSE' ? 'Rashod' : (t.type || '—') }}</td>
-            <td>{{ money(Number(t.amount || 0), currency) }}</td>
-            <td>#{{ t.sourceWalletId ?? t.sourceId ?? '—' }}</td>
-            <td>#{{ t.targetWalletId ?? t.targetId ?? '—' }}</td>
-
-            <td>
-              <template v-if="t.repeatable !== undefined">
-                  <span :class="t.activeRepeat ? 'pill pill-soft' : 'pill'">
-                    {{ t.activeRepeat ? 'Aktivno' : 'Neaktivno' }}
-                  </span>
-                <button
-                  class="btn btn-subtle"
-                  style="margin-left:8px"
-                  @click="toggleRepeat(t)"
-                >
-                  {{ repeatTogglingId === t.id ? '...' : (t.activeRepeat ? 'Zaustavi' : 'Aktiviraj') }}
-                </button>
-              </template>
-              <template v-else>
-                <span class="text-muted">—</span>
-              </template>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
+      <tr>
+        <th>Datum</th>
+        <th>Naziv</th>
+        <th>Tip</th>
+        <th>Iznos</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="t in txRows" :key="t.id">
+        <td>{{ (t.dateOfExecution || t.createdAt || '').toString().slice(0,10) }}</td>
+        <td>{{ t.name || t.transactionName || '—' }}</td>
+        <td>{{ t.type === 'INCOME' ? 'Prihod' : t.type === 'EXPENSE' ? 'Rashod' : (t.type || '—') }}</td>
+        <td>{{ money(Number(t.amount || 0), currency) }}</td>
+      </tr>
+    </tbody>
+    </table>
+  </div>
 
       <div v-else class="text-muted">Nema transakcija za ovaj novcanik.</div>
     </div>
@@ -336,80 +313,85 @@
           <option value="EVERY_2_MIN">Svakih 2 min (test)</option>
         </select>
 
-        <select v-model="transferForm.categoryId">
-          <option :value="null">— Bez kategorije —</option>
-          <option v-for="c in categories" :key="c.id" :value="c.id">
-            {{ c.name }} ({{ c.type }})
-          </option>
-        </select>
-
-        <div class="flex gap-4" style="grid-column: 1 / -1; align-items:center;">
-          <input v-model="newCatName" placeholder="Nova kategorija" style="min-width: 200px;" />
-          <select v-model="newCatType" style="min-width: 140px;">
-            <option value="INCOME">Prihod</option>
-            <option value="EXPENSE">Rashod</option>
-          </select>
-          <button class="btn btn-primary" :disabled="creatingCat" @click.prevent="createCategoryInline">
-            {{ creatingCat ? 'Dodajem…' : 'Dodaj kategoriju' }}
-          </button>
-        </div>
-
-        <div class="form-actions" style="grid-column: 1 / -1;">
-          <button class="btn btn-primary" :disabled="transferSaving" @click="submitTransfer">
-            {{ transferSaving ? 'Prebacujem…' : 'Prebaci' }}
-          </button>
-          <span v-if="transferError" class="error-message">{{ transferError }}</span>
-        </div>
-      </div>
+    <div class="form-actions">
+      <button class="btn" :disabled="transferSaving" @click="submitTransfer">
+        {{ transferSaving ? 'Prebacujem…' : 'Prebaci' }}
+      </button>
+      <span v-if="transferError" class="err">{{ transferError }}</span>
     </div>
 
-    <div class="card" style="margin-top: 16px;">
-      <div class="flex-between" style="margin-bottom: 8px;">
-        <strong>Statistika i pregled</strong>
-        <div class="flex gap-4">
-          <select v-model="granularity">
-            <option value="DAY">Dan</option>
-            <option value="WEEK">Nedelja</option>
-            <option value="MONTH">Mesec</option>
-            <option value="YEAR">Godina</option>
-          </select>
-          <input type="date" v-model="from" />
-          <input type="date" v-model="to" />
-          <input type="number" v-model.number="minAmount" placeholder="Min iznos" style="width:120px;">
-          <input type="number" v-model.number="maxAmount" placeholder="Max iznos" style="width:120px;">
-          <button class="btn btn-primary" @click="loadStats">Primeni</button>
-        </div>
-      </div>
+    <select v-model="transferForm.categoryId">
+      <option :value="null">— Bez kategorije —</option>
+      <option v-for="c in categories" :key="c.id" :value="c.id">
+        {{ c.name }} ({{ c.type }})
+      </option>
+    </select>
 
+    <div class="flex" style="gap:8px; align-items:center;">
+      <input v-model="newCatName" placeholder="Nova kategorija" style="min-width: 200px;" />
+      <select v-model="newCatType" style="min-width: 140px;">
+        <option value="INCOME">Prihod</option>
+        <option value="EXPENSE">Rashod</option>
+      </select>
+      <button class="btn" :disabled="creatingCat" @click.prevent="createCategoryInline">
+        {{ creatingCat ? 'Dodajem…' : 'Dodaj kategoriju' }}
+      </button>
+    </div>
+    <div v-if="catLoading" class="muted">Učitavanje kategorija…</div>
+    <div v-if="catError" class="err">{{ catError }}</div>
+  </div>
+  </div>
       <div>
         <canvas id="seriesChart" height="140"></canvas>
       </div>
 
-      <div class="grid2" style="margin-top:12px;">
-        <div>
-          <canvas id="catChart" height="160"></canvas>
-        </div>
-        <div>
-          <table class="data-table">
-            <thead>
-            <tr><th colspan="4">Top 10 troškova</th></tr>
-            <tr>
-              <th>Datum</th><th>Naziv</th><th>Kategorija</th><th>Iznos</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="t in topExpensesRows" :key="t.id">
-              <td>{{ (t.dateOfExecution||'').toString().slice(0,10) }}</td>
-              <td>{{ t.name }}</td>
-              <td>{{ t.categoryName || '—' }}</td>
-              <td>{{ money(t.amount, currency) }}</td>
-            </tr>
-            <tr v-if="!topExpensesRows.length"><td colspan="4" class="text-muted">Nema stavki.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+<UiCard class="centered-card" style="margin-top: 16px;">
+  <div style="text-align:center; margin-bottom: 8px;">
+    <strong style="font-size: 18px;">Top 10 troškova</strong>
+  </div>
+
+  <div class="flex" style="justify-content:center; gap:8px; margin:8px 0;">
+    <select v-model="topPeriod">
+      <option value="all">Sve</option>
+      <option value="day">Dan</option>
+      <option value="week">Nedelja</option>
+      <option value="month">Mesec</option>
+      <option value="quarter">Kvartal</option>
+    </select>
+    <input v-if="topPeriod !== 'all'" type="date" v-model="topAnchor" />
+    <button class="btn" @click="loadTopExpenses">Primeni</button>
+  </div>
+
+  <div v-if="topLoading" class="muted" style="text-align:center; padding: 12px;">Učitavanje…</div>
+  <div v-else-if="topError" class="err" style="text-align:center;">{{ topError }}</div>
+
+  <div v-else>
+    <table class="pretty-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Datum</th>
+          <th>Naziv</th>
+          <th>Kategorija</th>
+          <th style="text-align:right;">Iznos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(t, i) in topRows" :key="i">
+          <td style="text-align:center; width: 44px;">{{ i + 1 }}</td>
+          <td style="width: 110px;">{{ (t.dateOfExecution||'').toString().slice(0,10) }}</td>
+          <td>{{ t.name }}</td>
+          <td>{{ t.categoryName || '—' }}</td>
+          <td style="text-align:right; white-space:nowrap;">{{ money(t.amount, currency) }}</td>
+        </tr>
+        <tr v-if="!topRows.length">
+          <td colspan="5" class="muted" style="text-align:center;">Nema stavki za izabrani period.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</UiCard>
+
 
     <div class="card" style="margin-top: 20px;">
       <h3>Uredi profil</h3>
@@ -495,6 +477,9 @@ const minAmount = ref(null)
 const maxAmount = ref(null)
 const categoryId = ref(null)
 const archivingId = ref(null)
+const topRows    = ref([])
+const topLoading = ref(false)
+const topError   = ref('')
 
 const activeWallets = computed(() => userWallets.value.filter(w => !w.archived))
 const archivedWallets = computed(() => userWallets.value.filter(w => w.archived))
@@ -522,12 +507,54 @@ const liveOn = ref(true)
 const liveRefreshSec = ref(15)
 let liveTimer = null
 const stopAllBusy = ref(false)
+const topPeriod = ref('month')
+const topAnchor = ref(new Date().toISOString().slice(0,10))
+
+const topRange = computed(() => {
+  if (topPeriod.value === 'all') return null
+  return getRange(topPeriod.value, topAnchor.value)
+})
+const topFrom = computed(() => topRange.value?.from || '')
+const topTo   = computed(() => topRange.value?.to   || '')
+
+async function loadTopExpenses() {
+  if (!userId) return
+  topError.value = ''
+  topLoading.value = true
+  try {
+    const today = new Date().toISOString().slice(0,10)
+    const start = topFrom.value || '1970-01-01'
+    const end   = topTo.value   || today
+
+    const params = { userId, startDate: start, endDate: end }
+
+    const call = Transactions.topExpenses
+      ? () => Transactions.topExpenses(params)
+      : async () => {
+          const qs = new URLSearchParams(params).toString()
+          const res = await fetch(`/api/transactions/top-expenses?${qs}`)
+          if (!res.ok) throw new Error(`HTTP ${res.status}`)
+          const data = await res.json()
+          return { data }
+        }
+
+    const { data } = await call()
+    topRows.value = Array.isArray(data) ? data : []
+  } catch (err) {
+    console.error('topExpenses failed:', err?.response?.data || err)
+    topError.value = 'Greška pri učitavanju Top 10 troškova.'
+    topRows.value = []
+  } finally {
+    topLoading.value = false
+  }
+}
 
 async function liveTick() {
   if (!liveOn.value) return
   if (!sourceWalletId.value) return
   try {
     await loadWalletBundle(sourceWalletId.value)
+    await loadTopExpenses()
   } catch (e) {
     console.debug('liveTick failed:', e?.response?.data || e)
   }
@@ -555,21 +582,7 @@ watch(liveRefreshSec, () => { if (liveOn.value) startLive() })
 
 async function afterDataChangeReload() {
   if (sourceWalletId.value) await loadWalletBundle(sourceWalletId.value)
-}
-
-async function toggleRepeat(t) {
-  if (!t?.id || !t.repeatable) return
-  try {
-    repeatTogglingId.value = t.id
-    const next = !t.activeRepeat
-    await Transactions.setActiveRepeat(t.id, next)
-    t.activeRepeat = next
-  } catch (e) {
-    console.error('toggleRepeat failed:', e?.response?.data || e)
-    alert('Greška pri promeni statusa ponavljanja.')
-  } finally {
-    repeatTogglingId.value = null
-  }
+  await loadTopExpenses()
 }
 
 async function stopAllRepeats() {
@@ -579,6 +592,7 @@ async function stopAllRepeats() {
     await Transactions.stopAllRepeats({ userId, walletId: sourceWalletId.value || undefined });
     if (sourceWalletId.value) {
       await loadWalletBundle(sourceWalletId.value);
+      await loadStats();
       await loadStats();
     }
   } catch (e) {
@@ -615,7 +629,7 @@ async function createCategoryInline() {
     if (created) transferForm.value.categoryId = created.id
   } catch (e) {
     console.error('createCategoryInline failed:', e?.response?.data || e)
-    alert('Greška pri kreiranju kategorije.')
+    alert('Greska pri kreiranju kategorije.')
   } finally {
     creatingCat.value = false
   }
@@ -719,24 +733,6 @@ function cancelEdit() {
   walletEditForm.value = { name: '', currency: 'RSD', savings: false }
 }
 
-async function enableGoal(w) {
-  if (!w?.id) return
-  try {
-    savingsTogglingId.value = w.id
-    await Wallets.updateSavings(w.id, true)
-    await loadUserWallets()
-
-    if (sourceWalletId.value === w.id) {
-      await loadWalletBundle(w.id)
-    }
-  } catch (e) {
-    console.error('enableGoal failed:', e?.response?.data || e)
-    alert('Greska pri aktiviranju cilja za ovaj novcanik.')
-  } finally {
-    savingsTogglingId.value = null
-  }
-}
-
 async function toggleArchive(w) {
   try {
     archivingId.value = w.id
@@ -777,18 +773,29 @@ async function saveWallet(w) {
 
     const ops = []
     if (newName && newName !== oldName) ops.push(Wallets.updateName(w.id, newName))
-    if (newCur && newCur !== oldCur)   ops.push(Wallets.updateCurrency(w.id, newCur))
+    if (newCur && newCur !== oldCur)   ops.push(Wallets.updateCurrencyAndRecalc(w.id, newCur))
 
     if (ops.length) {
-      await Promise.all(ops)
+      let updatedWalletFromCurrency = null
+      for (const op of ops) {
+        const res = await op
+        if (res?.data?.id) updatedWalletFromCurrency = res.data
+      }
+
       await loadUserWallets()
-      const updated = userWallets.value.find(x => x.id === w.id)
+
+      const updated = updatedWalletFromCurrency
+        ? updatedWalletFromCurrency
+        : userWallets.value.find(x => x.id === w.id)
+
       if (updated) {
         wallet.value = updated
         sourceWalletId.value = updated.id
         await loadWalletBundle(updated.id)
       }
     }
+
+    editingWalletId.value = null
   } catch (e) {
     console.error('saveWallet failed:', e?.response?.data || e)
     walletSaveError.value = 'Greska pri cuvanju izmena.'
@@ -852,48 +859,6 @@ async function saveUserProfile() {
   } finally {
     savingUser.value = false
   }
-}
-
-async function loadStats() {
-  if (!userId) return
-  const params = {
-    userId,
-    granularity: granularity.value,
-    from: from.value || undefined,
-    to: to.value || undefined,
-    categoryId: categoryId.value || undefined,
-    minAmount: minAmount.value || undefined,
-    maxAmount: maxAmount.value || undefined,
-  }
-
-  const [{ data: series }, { data: cats }, { data: tops }] = await Promise.all([
-    Stats.series(params),
-    Stats.byCategory(params),
-    Stats.topExpenses({ ...params, limit: 10 }),
-  ])
-
-  const labels = series.map(p => p.bucketDate)
-  const income = series.map(p => Number(p.income || 0))
-  const expense = series.map(p => Number(p.expense || 0))
-
-  chartOrCreate('seriesChart', {
-    type: 'line',
-    data: { labels, datasets: [
-        { label: 'Prihod', data: income, tension: 0.25 },
-        { label: 'Rashod', data: expense, tension: 0.25 }
-      ]},
-    options: { responsive: true, maintainAspectRatio: false }
-  })
-
-  const catLabels = cats.map(c => c.categoryName || 'Bez kategorije')
-  const catExpense = cats.map(c => Number(c.expense || 0))
-  chartOrCreate('catChart', {
-    type: 'doughnut',
-    data: { labels: catLabels, datasets: [{ label: 'Rashodi po kategorijama', data: catExpense }] },
-    options: { responsive: true, maintainAspectRatio: false }
-  })
-
-  topExpensesRows.value = tops || []
 }
 
 function isoDate(dt) { return dt.toISOString().slice(0,10) }
@@ -1131,29 +1096,28 @@ async function loadWalletBundle(id) {
   }
 }
 
+watch([from, to], () => { loadTopExpenses() })
+
 watch([period, anchor, sourceWalletId], async () => {
   if (sourceWalletId.value) await loadWalletBundle(sourceWalletId.value);
 })
 
 onMounted(async () => {
   await loadUserWallets()
-  await loadCategories();
+  await loadCategories()
+  await loadTopExpenses()
   if (userWallets.value.length) {
-    sourceWalletId.value = userWallets.value[0].id;
-    await loadWalletBundle(sourceWalletId.value);
+    sourceWalletId.value = userWallets.value[0].id
+    await loadWalletBundle(sourceWalletId.value)
     const d = new Date()
     const start = new Date(d.getFullYear(), d.getMonth(), 1)
     const end   = new Date(d.getFullYear(), d.getMonth()+1, 0)
     from.value = start.toISOString().slice(0,10)
     to.value   = end.toISOString().slice(0,10)
-    await loadStats()
   }
 
   document.addEventListener('visibilitychange', handleVisibility)
   if (liveOn.value) startLive()
-
-  document.removeEventListener('visibilitychange', handleVisibility)
-  stopLive()
 
   const user = JSON.parse(localStorage.getItem('user') || '{}')
   if (user) {
@@ -1165,6 +1129,14 @@ onMounted(async () => {
     }
   }
 })
+
+async function loadStats () {
+  await loadTopExpenses()
+}
+
+function hasGoal(w) {
+  return !!(w?.goal && Number(w.goal.targetAmount ?? w.goal.target_amount ?? 0) > 0)
+}
 
 function money(val, cur) {
   const n = Number(val ?? 0)
@@ -1309,14 +1281,7 @@ function money(val, cur) {
   gap: 24px;
 }
 
-.conversion-preview {
-  margin-top: 8px;
-  font-size: 14px;
-  padding: 8px;
-  background: #f0f9ff;
-  border-radius: 6px;
-  border: 1px solid #bae6fd;
-}
+.conversion-preview { margin-top: 6px; }
 
 .goal-chip {
   display: flex;
@@ -1327,48 +1292,59 @@ function money(val, cur) {
   border-radius: 12px;
   background: #f8fafc;
 }
+.goal-chip-text .tight { line-height: 1.2; }
 
-.goal-chip-text .tight {
-  line-height: 1.2;
+.tx-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
 }
 
-.error-message {
-  color: #ef4444;
-  font-size: 14px;
-  padding: 8px 12px;
-  background: #fef2f2;
-  border-radius: 6px;
-  border: 1px solid #fecaca;
+.tx-table thead th {
+  background: #fafafa;
+  font-weight: 600;
 }
 
-@media (max-width: 768px) {
-  .user-container {
-    padding: 16px;
-  }
+.tx-table th,
+.tx-table td {
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
 
-  .user-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
+.tx-table tbody tr:hover {
+  background: #f9fafb;
+}
 
-  .wallet-row {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
-  }
+.centered-card {
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+}
 
-  .wallet-actions {
-    width: 100%;
-    justify-content: flex-end;
-  }
+.pretty-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: 12px;
+}
 
-  .grid2 {
-    grid-template-columns: 1fr;
-  }
+.pretty-table thead th {
+  background: #fafafa;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 12px;
+}
 
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
+.pretty-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f1f3;
+}
+
+.pretty-table tbody tr:hover {
+  background: #f9fafb;
 }
 </style>

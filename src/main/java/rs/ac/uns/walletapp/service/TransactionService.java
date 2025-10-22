@@ -305,13 +305,13 @@ public class TransactionService {
         return transactionRepository.findByUser_Id(userId);
     }
 
-    public List<Transaction> filterTransactions(Integer username, Integer categoryName, BigDecimal minAmount, BigDecimal maxAmount, LocalDate date) {
-        if (username == null && categoryName == null && minAmount == null && maxAmount == null && date == null) {
+    public List<Transaction> filterTransactions(Integer userId, Integer categoryId, BigDecimal minAmount, BigDecimal maxAmount, LocalDate date) {
+        if (userId == null && categoryId == null && minAmount == null && maxAmount == null && date == null) {
             return transactionRepository.findAll();
         }
         return transactionRepository.filterTransactions(
-                username,
-                categoryName,
+                userId,
+                categoryId,
                 minAmount,
                 maxAmount,
                 date,
