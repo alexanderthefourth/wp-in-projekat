@@ -50,6 +50,7 @@
 
   <div v-if="txRows && txRows.length">
     <table class="tx-table">
+<<<<<<< Updated upstream
           <thead>
       <tr>
         <th>Datum</th>
@@ -89,6 +90,24 @@
     </td>
       </tr>
     </tbody>
+=======
+      <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Naziv</th>
+          <th>Tip</th>
+          <th>Iznos</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="t in txRows" :key="t.id">
+          <td>{{ (t.dateOfExecution || t.createdAt || '').toString().slice(0,10) }}</td>
+          <td>{{ t.name || t.transactionName || '—' }}</td>
+          <td>{{ t.type === 'INCOME' ? 'Prihod' : t.type === 'EXPENSE' ? 'Rashod' : (t.type || '—') }}</td>
+          <td>{{ money(Number(t.amount || 0), currency) }}</td>
+        </tr>
+      </tbody>
+>>>>>>> Stashed changes
     </table>
   </div>
 
@@ -1314,12 +1333,19 @@ function money(val, cur) {
 
 .conversion-preview { margin-top: 6px; }
 
+<<<<<<< Updated upstream
 .goal-chip {
   display: flex; gap: 8px; align-items: center;
   padding: 6px 8px; border: 1px solid var(--line);
   border-radius: 12px; background: #fffaf3;
 }
 .goal-chip-text .tight { line-height: 1.2; }
+
+.tx-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
 
 .tx-table {
   width: 100%;
@@ -1334,7 +1360,11 @@ function money(val, cur) {
 
 .tx-table th,
 .tx-table td {
+<<<<<<< Updated upstream
   border: 1px solid #e5e7eb;
+=======
+  border: 1px solid #e5e7eb;       /* cell borders */
+>>>>>>> Stashed changes
   padding: 10px 12px;
   text-align: left;
   vertical-align: middle;
@@ -1344,4 +1374,8 @@ function money(val, cur) {
 .tx-table tbody tr:hover {
   background: #f9fafb;
 }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 </style>
