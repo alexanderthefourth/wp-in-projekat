@@ -339,10 +339,8 @@
     </div>
     <div v-if="catLoading" class="muted">Učitavanje kategorija…</div>
     <div v-if="catError" class="err">{{ catError }}</div>
-
   </div>
-</UiCard>
-
+  </div>
       <div>
         <canvas id="seriesChart" height="140"></canvas>
       </div>
