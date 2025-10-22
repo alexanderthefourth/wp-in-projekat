@@ -1,14 +1,14 @@
 <template>
   <div class="admin-container">
     <div class="admin-header">
-      <h1>Administratorski Panel</h1>
+      <h1>Administratorski panel</h1>
       <div class="header-actions">
         <LogoutButton />
       </div>
     </div>
 
     <div v-if="loading" class="loading">
-      Učitavanje podataka...
+      Ucitavanje, budite strpljivi...
     </div>
 
     <div v-else>
@@ -108,12 +108,9 @@
           </button>
 
           <div class="comment-section">
-            <h4>Administratorska beleška:</h4>
-            <textarea
-              v-model="adminComment"
-              placeholder="Unesite ili izmenite komentar..."
-            ></textarea>
-            <button @click="saveComment(selectedUser.id)" class="btn btn-primary">Sačuvaj</button>
+            <h4>Admin komentar:</h4>
+            <textarea v-model="adminComment"></textarea>
+            <button @click="saveComment(selectedUser.id)" class="btn btn-primary">Sacuvaj</button>
           </div>
 
           <div class="transactions">
@@ -159,23 +156,11 @@
               <td>{{ currency.name }}</td>
               <td>
                 <span v-if="currency.name === 'RSD'">1.00</span>
-                <input
-                  v-else
-                  type="number"
-                  v-model="currency.value"
-                  step="0.01"
-                  min="0.01"
-                  @change="updateCurrency(currency)"
-                  class="currency-input"
-                >
+                <input v-else type="number" v-model="currency.value" step="0.01" min="0.01" @change="updateCurrency(currency)" class="currency-input">
               </td>
               <td>
-                <button
-                  v-if="currency.name !== 'RSD'"
-                  @click="deleteCurrency(currency.name)"
-                  class="btn btn-danger"
-                >
-                  Obriši
+                <button v-if="currency.name !== 'RSD'" @click="deleteCurrency(currency.name)" class="btn btn-danger">
+                  Obrisi
                 </button>
                 <span v-else class="text-muted">Osnovna valuta</span>
               </td>
@@ -200,23 +185,46 @@
             </div>
             <div class="form-group">
               <label for="currencyValue">Vrednost u dinarima:</label>
-              <input
-                id="currencyValue"
-                type="number"
-                v-model="newCurrency.value"
-                step="0.01"
-                min="0.01"
-              >
+              <input id="currencyValue" type="number" v-model="newCurrency.value" step="0.01" min="0.01">
             </div>
             <div class="form-group">
+              <small class="text-muted">Unesite koliko dinara vredi jedinica valute {{ newCurrency.name }}</small>
               <button @click="addCurrency" class="btn btn-primary add-btn">
                 Dodaj valutu
               </button>
             </div>
           </div>
-          <small class="text-muted">Unesite koliko dinara vredi 1 {{ newCurrency.name || 'novo' }}</small>
         </div>
       </section>
+
+      <section class="predefined-categories card mt-4">
+        <h3>Dodavanje predefinisanih kategorija</h3>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="predefName">Naziv kategorije:</label>
+            <input id="predefName" type="text" v-model="newPredefinedCategory.name"/>
+          </div>
+
+          <div class="form-group">
+            <label for="predefType">Tip kategorije:</label>
+            <select id="predefType" v-model="newPredefinedCategory.type">
+              <option disabled value="">-- Odaberite tip --</option>
+              <option value="EXPENSE">Trošak</option>
+              <option value="INCOME">Prihod</option>
+              <option value="SAVINGS">Štednja</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <button @click="addPredefinedCategory" class="btn btn-primary">
+              Dodaj predefinisanu kategoriju
+            </button>
+          </div>
+        </div>
+
+      </section>
+
 
       <section class="monitoring card mt-4">
         <h3>Monitoring transakcija</h3>
@@ -244,12 +252,12 @@
             </div>
 
             <div class="form-group">
-              <label for="minAmount">Min iznos:</label>
+              <label for="minAmount">Minimalan iznos:</label>
               <input id="minAmount" type="number" v-model="filters.minAmount" step="0.01">
             </div>
 
             <div class="form-group">
-              <label for="maxAmount">Max iznos:</label>
+              <label for="maxAmount">Maksimalan iznos:</label>
               <input id="maxAmount" type="number" v-model="filters.maxAmount" step="0.01">
             </div>
           </div>
@@ -303,7 +311,7 @@
               <td>{{ transaction.type }}</td>
               <td>{{ transaction.category ? transaction.category.name : 'N/A' }}</td>
               <td>{{ formatDate(transaction.dateOfExecution) }}</td>
-              <td>{{ transaction.wallet ? `Novčanik #${transaction.wallet.id}` : 'N/A' }}</td>
+              <td>{{ transaction.wallet ? `Wallet #${transaction.wallet.id}` : 'N/A' }}</td>
             </tr>
             </tbody>
           </table>
@@ -335,7 +343,10 @@ const dashboard = ref({
   top10Last30Days: [],
   top10LastDay: [],
 });
-
+const newPredefinedCategory = ref({
+  name: "",
+  type: "",
+});
 const users = ref([]);
 const selectedUserId = ref("");
 const selectedUser = ref(null);
@@ -399,15 +410,38 @@ async function loadAllUsers() {
     alert("Greška pri učitavanju korisnika.");
   }
 }
+async function addPredefinedCategory() {
+  if (!newPredefinedCategory.value.name || !newPredefinedCategory.value.type) {
+    alert("Unesite naziv i izaberite tip kategorije.");
+    return;
+  }
+
+  try {
+    const response = await Categories.createPredefined({
+      name: newPredefinedCategory.value.name,
+      type: newPredefinedCategory.value.type,
+    });
+
+    alert("Predefinisana kategorija uspesno dodata!");
+    newPredefinedCategory.value = { name: "", type: "" };
+    await loadCategories();
+  } catch (error) {
+    console.error("Greska pri dodavanju predefinisane kategorije:", error);
+    alert(
+      "Greska pri dodavanju kategorije: " +
+      (error.response?.data || error.message)
+    );
+  }
+}
 
 async function loadDashboard() {
   try {
-    console.log('Učitavam dashboard...');
+    console.log('Ucitavam dashboard...');
     const { data } = await Stats.dashboard();
     console.log('Dashboard podaci:', data);
     dashboard.value = data;
   } catch (error) {
-    console.error("Greška pri učitavanju statistike:", error);
+    console.error("Greska pri ucitavanju statistike:", error);
     console.error("Status:", error.response?.status);
     console.error("Poruka:", error.response?.data);
   }
@@ -424,7 +458,7 @@ async function loadUserTransactionsAndComment() {
     const { data } = await Transactions.byUser(id);
     userTransactions.value = data;
   } catch (error) {
-    console.error("Greška pri učitavanju transakcija korisnika:", error);
+    console.error("Greska pri ucitavanju transakcija korisnika:", error);
   }
 }
 
@@ -434,8 +468,8 @@ async function toggleBlockUser(userId) {
     await loadAllUsers();
     await loadUserTransactionsAndComment();
   } catch (error) {
-    console.error("Greška pri blokiranju korisnika:", error);
-    alert("Greška pri blokiranju korisnika.");
+    console.error("Greska pri blokiranju korisnika:", error);
+    alert("Greska pri blokiranju korisnika.");
   }
 }
 
@@ -446,24 +480,24 @@ async function saveComment(userId) {
     const user = users.value.find((u) => u.id === userId);
     if (user) user.adminComment = adminComment.value;
 
-    alert("Komentar sačuvan.");
+    alert("Komentar sacuvan");
   } catch (error) {
-    console.error("Greška pri čuvanju komentara:", error);
-    alert("Greška pri čuvanju komentara.");
+    console.error("Greska pri cuvanju komentara:", error);
+    alert("Greska pri cuvanju komentara.");
   }
 }
 
 async function loadCurrencies() {
   try {
-    console.log('Učitavam valute...');
+    console.log('Ucitavam valute...');
     const { data } = await Currencies.getAll();
-    console.log('Valute učitane:', data);
+    console.log('Valute ucitane:', data);
     currencies.value = data;
   } catch (error) {
-    console.error("Greška pri učitavanju valuta:", error);
+    console.error("Greska pri ucitavanju valuta:", error);
     console.error("Status:", error.response?.status);
     console.error("Data:", error.response?.data);
-    alert("Greška pri učitavanju valuta.");
+    alert("Greska pri ucitavanju valuta.");
   }
 }
 
@@ -487,10 +521,10 @@ async function addCurrency() {
     await Currencies.create(currencyToAdd);
     await loadCurrencies();
     newCurrency.value = { name: "", value: null };
-    alert("Valuta uspešno dodata.");
+    alert("Valuta uspesno dodata.");
   } catch (error) {
-    console.error("Greška pri dodavanju valute:", error);
-    alert("Greška pri dodavanju valute: " + (error.response?.data?.message || error.message));
+    console.error("Greska pri dodavanju valute:", error);
+    alert("Greska pri dodavanju valute: " + (error.response?.data?.message || error.message));
   }
 }
 
@@ -506,16 +540,16 @@ async function updateCurrency(currency) {
       name: currency.name,
       value: currency.value
     });
-    alert("Valuta uspešno ažurirana.");
+    alert("Valuta uspesno azurirana.");
   } catch (error) {
-    console.error("Greška pri ažuriranju valute:", error);
-    alert("Greška pri ažuriranju valute: " + (error.response?.data?.message || error.message));
+    console.error("Greska pri azuriranju valute:", error);
+    alert("Greska pri azuriranju valute: " + (error.response?.data?.message || error.message));
     await loadCurrencies();
   }
 }
 
 async function deleteCurrency(currencyName) {
-  if (!confirm(`Da li ste sigurni da želite da obrišete valutu ${currencyName}?`)) {
+  if (!confirm(`Da li ste sigurni da zelite da obrisete valutu ${currencyName}?`)) {
     return;
   }
 
@@ -524,19 +558,19 @@ async function deleteCurrency(currencyName) {
     await loadCurrencies();
     alert("Valuta uspešno obrisana.");
   } catch (error) {
-    console.error("Greška pri brisanju valute:", error);
-    alert("Greška pri brisanju valute: " + (error.response?.data?.message || error.message));
+    console.error("Greska pri brisanju valute:", error);
+    alert("Greska pri brisanju valute: " + (error.response?.data?.message || error.message));
   }
 }
 
 async function loadCategories() {
   try {
-    console.log('Učitavam kategorije...');
+    console.log('Ucitavam kategorije...');
     const { data } = await Categories.all();
-    console.log('Kategorije učitane:', data);
+    console.log('Kategorije ucitane:', data);
     categories.value = data;
   } catch (error) {
-    console.error("Greška pri učitavanju kategorija:", error);
+    console.error("Greska pri ucitavanju kategorija:", error);
     console.error("Status:", error.response?.status);
     console.error("Data:", error.response?.data);
   }
@@ -544,12 +578,12 @@ async function loadCategories() {
 
 async function loadAllTransactions() {
   try {
-    console.log('Učitavam sve transakcije...');
+    console.log('Ucitavam sve transakcije...');
     const { data } = await Transactions.all();
-    console.log('Transakcije učitane:', data);
+    console.log('Transakcije ucitane:', data);
     allTransactions.value = data;
   } catch (error) {
-    console.error("Greška pri učitavanju transakcija:", error);
+    console.error("Greska pri ucitavanju transakcija:", error);
     console.error("Status:", error.response?.status);
     console.error("Data:", error.response?.data);
   }
@@ -578,10 +612,10 @@ async function applyFilters() {
 
     console.log('Filtrirane transakcije:', data);
   } catch (error) {
-    console.error("Greška pri filtriranju transakcija:", error);
+    console.error("Greska pri filtriranju transakcija:", error);
     console.error("Status:", error.response?.status);
     console.error("Data:", error.response?.data);
-    alert("Došlo je do greške pri filtriranju transakcija.");
+    alert("Greska pri filtriranju transakcija.");
   }
 }
 
@@ -618,7 +652,7 @@ const filteredTransactions = computed(() => {
 });
 
 function sortByField(field) {
-  // Implementation for field sorting
+  //uraditi
 }
 
 function formatAmount(amount) {
@@ -794,4 +828,42 @@ function formatDate(dateString) {
     flex-direction: column;
   }
 }
+.predefined-categories {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.predefined-categories .form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+
+.predefined-categories .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.predefined-categories input,
+.predefined-categories select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  font-size: 14px;
+  width: 220px;
+}
+
+.predefined-categories button {
+  white-space: nowrap;
+}
+
+.predefined-categories small {
+  color: #6b7280;
+  display: block;
+  margin-top: 8px;
+}
+
 </style>

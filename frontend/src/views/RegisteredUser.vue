@@ -1,7 +1,7 @@
 <template>
   <div class="user-container">
     <div class="user-header">
-      <h1>Moj Novčanik</h1>
+      <h1>Moj Novcanik</h1>
       <div class="header-actions">
         <LogoutButton />
       </div>
@@ -26,7 +26,7 @@
       <div class="card tile balans" v-else>
         <h2 style="margin: 0"><strong>—</strong></h2>
         <div class="text-muted" style="margin-top: 8px">
-          Izaberite novčanik iz liste da prikažete detalje.
+          Izaberite novcanik iz liste da prikazete detalje.
         </div>
       </div>
     </div>
@@ -99,14 +99,14 @@
         </table>
       </div>
 
-      <div v-else class="text-muted">Nema transakcija za ovaj novčanik.</div>
+      <div v-else class="text-muted">Nema transakcija za ovaj novcanik.</div>
     </div>
 
     <div class="card" style="margin-top: 8px;">
       <div class="flex-between" style="margin-bottom: 8px;">
-        <strong>Moji novčanici</strong>
+        <strong>Moji novcanici</strong>
         <button class="btn btn-primary" @click="showCreateWallet = !showCreateWallet">
-          {{ showCreateWallet ? 'Zatvori' : '+ Kreiraj novčanik' }}
+          {{ showCreateWallet ? 'Zatvori' : '+ Kreiraj novcanik' }}
         </button>
       </div>
 
@@ -138,7 +138,7 @@
               </select>
               <label class="check tiny">
                 <input type="checkbox" v-model="walletEditForm.savings" />
-                Štednja
+                Stednja
               </label>
             </div>
           </div>
@@ -171,19 +171,19 @@
               >
                 {{ archivingId === w.id ? '...' : 'Arhiviraj' }}
               </button>
-              <button class="btn btn-danger" @click="confirmDelete(w)">Obriši</button>
+              <button class="btn btn-danger" @click="confirmDelete(w)">Obrisi</button>
             </template>
 
             <template v-else>
-              <button class="btn btn-accent" :disabled="savingWallet" @click="saveWallet(w)">Sačuvaj</button>
-              <button class="btn btn-subtle" :disabled="savingWallet" @click="cancelEdit">Otkaži</button>
+              <button class="btn btn-accent" :disabled="savingWallet" @click="saveWallet(w)">Sacuvaj</button>
+              <button class="btn btn-subtle" :disabled="savingWallet" @click="cancelEdit">Otkazi</button>
             </template>
           </div>
         </div>
       </div>
 
       <div v-if="!activeWallets.length" class="text-muted">
-        Nema aktivnih novčanika.
+        Nema aktivnih novcanika.
       </div>
 
       <div v-if="walletEditConversionPreview" class="text-muted conversion-preview">
@@ -225,15 +225,15 @@
     </div>
 
     <div class="card" v-if="showCreateWallet" style="margin-top: 20px;">
-      <h3>Kreiraj novi novčanik</h3>
+      <h3>Kreiraj novi novcanik</h3>
       <div class="form-grid">
-        <input v-model="walletForm.name" placeholder="Naziv novčanika" />
+        <input v-model="walletForm.name" placeholder="Naziv novcanika" />
         <input
           type="number"
           v-model.number="walletForm.initBal"
           min="0"
           step="0.01"
-          placeholder="Početni balans"
+          placeholder="Pocetni balans"
         />
         <select v-model="walletForm.currency">
           <option disabled value="">Valuta</option>
@@ -242,7 +242,7 @@
           <option value="USD">USD</option>
         </select>
         <label class="check">
-          <input type="checkbox" v-model="walletForm.savingsWallet" /> Štedni novčanik
+          <input type="checkbox" v-model="walletForm.savingsWallet" /> Stedni novcanik
         </label>
 
         <div v-if="walletForm.savingsWallet" class="form-grid" style="grid-template-columns: repeat(3, minmax(220px, 1fr));">
@@ -253,7 +253,7 @@
 
         <div class="form-actions">
           <button class="btn btn-accent" :disabled="walletSaving" @click="submitWallet">
-            {{ walletSaving ? 'Čuvanje…' : 'Kreiraj' }}
+            {{ walletSaving ? 'Cuvanje…' : 'Kreiraj' }}
           </button>
           <span v-if="walletError" class="error-message">{{ walletError }}</span>
         </div>
@@ -271,7 +271,7 @@
               <span> / {{ money(targetAmount, currency) }}</span>
             </div>
             <div class="text-muted">
-              Novčanik: {{ wallet?.savings ? 'Štednja' : 'Standard' }}
+              Novcanik: {{ wallet?.savings ? 'Stednja' : 'Standard' }}
             </div>
           </div>
         </div>
@@ -283,14 +283,14 @@
         <strong>Plaćanja i transferi</strong>
         <div class="flex gap-4">
           <button class="btn btn-primary" @click="showTransfer = !showTransfer">
-            {{ showTransfer ? 'Zatvori' : 'Novo plaćanje' }}
+            {{ showTransfer ? 'Zatvori' : 'Novo placanje' }}
           </button>
         </div>
       </div>
 
       <div v-if="showTransfer" class="form-grid" style="margin-top: 8px;">
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="text-muted">Početni novčanik:</label>
+          <label class="text-muted">Pocetni novcanik:</label>
           <input type="text" :value="sourceWalletName || '—'" readonly />
         </div>
 
@@ -321,7 +321,7 @@
         <input type="date" v-model="transferForm.dateOfExecution" />
 
         <label class="check">
-          <input type="checkbox" v-model="transferForm.repeatable" /> Ponavljajuća
+          <input type="checkbox" v-model="transferForm.repeatable" /> Ponavljajuca
         </label>
         <label class="check" :style="{ opacity: transferForm.repeatable ? 1 : 0.5 }">
           <input type="checkbox" v-model="transferForm.activeRepeat" :disabled="!transferForm.repeatable" />
@@ -329,10 +329,10 @@
         </label>
 
         <select v-model="transferForm.frequency" :disabled="!transferForm.repeatable">
-          <option value="">— Odaberite učestalost —</option>
+          <option value="">— Odaberite ucestalost —</option>
           <option value="DAILY">Svakog dana</option>
           <option value="WEEKLY">Nedeljno</option>
-          <option value="MONTHLY">Mesečno</option>
+          <option value="MONTHLY">Mesecno</option>
           <option value="EVERY_2_MIN">Svakih 2 min (test)</option>
         </select>
 
@@ -417,10 +417,10 @@
         <input v-model="editUserForm.firstName" placeholder="Ime" />
         <input v-model="editUserForm.lastName" placeholder="Prezime" />
         <input v-model="editUserForm.email" type="email" placeholder="Email" />
-        <input v-model="editUserForm.birthDate" type="date" placeholder="Datum rođenja" />
+        <input v-model="editUserForm.birthDate" type="date" placeholder="Datum rodjenja" />
         <div class="form-actions">
           <button class="btn btn-accent" :disabled="savingUser" @click="saveUserProfile">
-            {{ savingUser ? 'Čuvanje…' : 'Sačuvaj promene' }}
+            {{ savingUser ? 'Cuvanje…' : 'Sacuvaj promene' }}
           </button>
           <span v-if="userError" class="error-message">{{ userError }}</span>
         </div>
@@ -731,7 +731,7 @@ async function enableGoal(w) {
     }
   } catch (e) {
     console.error('enableGoal failed:', e?.response?.data || e)
-    alert('Greška pri aktiviranju cilja za ovaj novčanik.')
+    alert('Greska pri aktiviranju cilja za ovaj novcanik.')
   } finally {
     savingsTogglingId.value = null
   }
@@ -749,7 +749,7 @@ async function toggleArchive(w) {
       sourceWalletId.value = activeWallets.value[0]?.id || null
     }
   } catch (e) {
-    console.error('archive toggle failed', e)
+    console.error('toggle arhiviranja nije uspeo', e)
     w.archived = !w.archived
   } finally {
     archivingId.value = null
@@ -791,14 +791,14 @@ async function saveWallet(w) {
     }
   } catch (e) {
     console.error('saveWallet failed:', e?.response?.data || e)
-    walletSaveError.value = 'Greška pri čuvanju izmena.'
+    walletSaveError.value = 'Greska pri cuvanju izmena.'
   } finally {
     savingWallet.value = false
   }
 }
 
 async function confirmDelete(w) {
-  if (!confirm(`Obrisati novčanik "${w.name}"? Ova akcija je trajna.`)) return
+  if (!confirm(`Obrisati novcanik "${w.name}"? Ova akcija je trajna.`)) return
   try {
     await deleteWalletApi(w.id)
     userWallets.value = userWallets.value.filter(x => x.id !== w.id)
@@ -814,7 +814,7 @@ async function confirmDelete(w) {
     }
   } catch (e) {
     console.error('delete wallet error:', e)
-    alert('Greška pri brisanju novčanika.')
+    alert('Greska pri brisanju novcanika.')
   }
 }
 
@@ -838,7 +838,7 @@ async function saveUserProfile() {
 
     localStorage.setItem('user', JSON.stringify(data))
 
-    alert('Profil uspešno ažuriran!')
+    alert('Profil uspešno azuriran!')
 
     editUserForm.value = {
       firstName: '',
@@ -848,7 +848,7 @@ async function saveUserProfile() {
     }
   } catch (e) {
     console.error('updateProfile failed', e)
-    userError.value = 'Greška pri čuvanju profila.'
+    userError.value = 'Greska pri cuvanju profila.'
   } finally {
     savingUser.value = false
   }
@@ -930,24 +930,24 @@ async function submitTransfer() {
   const target = userWallets.value.find(x => x.id === Number(transferForm.value.targetWalletId))
 
   if (!source || source.archived) {
-    transferError.value = 'Početni novčanik je arhiviran ili nije izabran.'
+    transferError.value = 'Pocetni novcanik je arhiviran ili nije izabran.'
     return
   }
   if (!target || target.archived) {
-    transferError.value = 'Odredišni novčanik je arhiviran ili nije izabran.'
+    transferError.value = 'Odredisni novcanik je arhiviran ili nije izabran.'
     return
   }
 
   if (!sourceId) {
-    transferError.value = 'Odaberite početni novčanik.'
+    transferError.value = 'Odaberite pocetni novčanik.'
     return
   }
   if (!targetId || !amt || amt <= 0) {
-    transferError.value = 'Unesite validne vrednosti: odredišni novčanik i pozitivan iznos.'
+    transferError.value = 'Unesite validne vrednosti: odredisni novcanik i pozitivan iznos.'
     return
   }
   if (targetId === sourceId) {
-    transferError.value = 'Izvorni i ciljni novčanik ne mogu biti isti.'
+    transferError.value = 'Izvorni i ciljni novcanik ne mogu biti isti.'
     return
   }
 
@@ -997,7 +997,7 @@ async function submitTransfer() {
     showTransfer.value = false
   } catch (e) {
     console.error('Transfer error:', e?.response?.data || e)
-    transferError.value = 'Greška pri transferu.'
+    transferError.value = 'Greska pri transferu.'
   } finally {
     transferSaving.value = false
   }
@@ -1028,13 +1028,13 @@ async function submitWallet() {
     const { data: created } = await Wallets.create(userId, payload)
     const newWalletId = created?.id ?? created?.wallet?.id
     if (!newWalletId) {
-      throw new Error('Nema ID novčanika u odgovoru.')
+      throw new Error('Nema ID novcanika u odgovoru.')
     }
 
     if (walletForm.value.savingsWallet && Number(walletForm.value.goalTarget) > 0) {
       await Goal.create({
         walletId: newWalletId,
-        name: walletForm.value.goalName || 'Cilj štednje',
+        name: walletForm.value.goalName || 'Cilj stednje',
         targetAmount: walletForm.value.goalTarget,
         deadline: walletForm.value.goalDeadline || null,
       })
@@ -1050,8 +1050,8 @@ async function submitWallet() {
     }
     showCreateWallet.value = false
   } catch (e) {
-    console.error('create wallet/goal failed:', e?.response?.status, e?.response?.data || e)
-    walletError.value = 'Greška pri kreiranju novčanika ili cilja.'
+    console.error('create wallet/goal nije uspeo:', e?.response?.status, e?.response?.data || e)
+    walletError.value = 'Greska pri kreiranju novcanika ili cilja.'
   } finally {
     walletSaving.value = false
   }
@@ -1072,7 +1072,7 @@ async function loadUserWallets() {
     console.log('[wallets] active:', userWallets.value.filter(x => !x.archived).length,
       'archived:', userWallets.value.filter(x =>  x.archived).length)
   } catch (e) {
-    console.error('getAll wallets failed:', e?.response?.status, e?.response?.data || e)
+    console.error('getAll wallets nije uspeo:', e?.response?.status, e?.response?.data || e)
     userWallets.value = []
   }
 }
@@ -1125,7 +1125,7 @@ async function loadWalletBundle(id) {
     });
   } catch (e) {
     console.error('loadWalletBundle failed:', e?.response?.status, e?.response?.data || e)
-    error.value = 'Greška pri učitavanju novčanika.';
+    error.value = 'Greska pri ucitavanju novcanika.';
   } finally {
     loading.value = false;
   }

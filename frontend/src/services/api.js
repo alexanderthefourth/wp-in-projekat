@@ -7,6 +7,7 @@ export const http = axios.create({
   baseURL: 'http://localhost:8080/api',
 })
 
+//error handling
 http.interceptors.response.use(
   (res) => {
     if (res.config.url?.startsWith('/stats')) {
@@ -59,8 +60,7 @@ export const Users = {
   updateComment: (userId, comment) => api.put(`/users/${userId}/comment`, comment, {
     headers: { 'Content-Type': 'text/plain' }
   }),
-  updateProfile: (userId, payload) =>
-    api.put(`/users/profile`, payload, { params: { userId } }),
+  updateProfile: (userId, payload) => api.put(`/users/profile`, payload, { params: { userId } }),
 }
 
 export const Wallets = {
@@ -68,15 +68,11 @@ export const Wallets = {
   get: (id) => api.get(`/wallets/${id}`),
   create: (userId, payload) => api.post('/wallets/walletCreate', payload, { params: { userId } }),
   viewCurrBal: (id) => api.get(`/wallets/${id}/viewCurrBal`),
-  viewTransactions: (id, params) =>
-    api.get(`/wallets/${id}/viewTransactions`, params ? { params } : undefined),
+  viewTransactions: (id, params) => api.get(`/wallets/${id}/viewTransactions`, params ? { params } : undefined),
   updateName: (id, name) => api.put(`/wallets/${id}/nameUpdate`, null, { params: { name } }),
-  updateSavings: (id, savings) =>
-    api.put(`/wallets/${id}/savingsUpdate`, null, { params: { savings } }),
-  archivedUpdate: (id, archived) =>
-  api.put(`/wallets/${id}/archivedUpdate`, null, { params: { archived } }),
-  updateCurrency: (id, currencyName) =>
-    api.put(`/wallets/${id}/currencyUpdate`, null, { params: { currencyName } }),
+  updateSavings: (id, savings) => api.put(`/wallets/${id}/savingsUpdate`, null, { params: { savings } }),
+  archivedUpdate: (id, archived) => api.put(`/wallets/${id}/archivedUpdate`, null, { params: { archived } }),
+  updateCurrency: (id, currencyName) => api.put(`/wallets/${id}/currencyUpdate`, null, { params: { currencyName } }),
   remove: (id) => api.delete(`/wallets/${id}/deleteWallet`),
 }
 
@@ -93,11 +89,8 @@ export const Transactions = {
   byUser: (userId) => api.get('/transactions/by-user', { params: { userId } }),
   all: (params) => api.get('/transactions/all', { params }),
 
-  setActiveRepeat: (id, active) =>
-    api.put(`/transactions/${id}/activeRepeat`, null, { params: { active } }),
-
-  setRepeatActive: (id, active) =>
-    api.patch(`/transactions/${id}/repeat`, null, { params: { active } }),
+  setActiveRepeat: (id, active) => api.put(`/transactions/${id}/activeRepeat`, null, { params: { active } }),
+  setRepeatActive: (id, active) => api.patch(`/transactions/${id}/repeat`, null, { params: { active } }),
 
   stopAllRepeats: ({ userId, walletId }) =>
     api.post('/transactions/stop-all-repeats', null, {
@@ -130,17 +123,14 @@ export const Categories = {
   all: () => api.get('/categories/all'),
 
   getForUser: (userId) => api.get( `/categories/${userId}`, { params: { userId } }),
-  create: (payload) =>
-    api.post(`/categories/createCategory`, payload),
-  update: (payload) =>
-    api.put(`/categories/updateCategory`, payload),
+  create: (payload) => api.post(`/categories/createCategory`, payload),
+  update: (payload) => api.put(`/categories/updateCategory`, payload),
   remove: (id) => api.delete(`/categories/${id}`),
+  createPredefined: (payload) => api.post("/categories/predefined", payload),
+
 }
 
 export const Goal = {
-  getByWallet: (walletId) =>
-    api.get('/goals/by-wallet', { params: { walletId } }),
-
-  create: (payload) =>
-    api.post('/goals/createGoal', payload),
+  getByWallet: (walletId) => api.get('/goals/by-wallet', { params: { walletId } }),
+  create: (payload) => api.post('/goals/createGoal', payload),
 };

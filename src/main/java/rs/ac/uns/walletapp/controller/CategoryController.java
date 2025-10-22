@@ -1,12 +1,15 @@
 package rs.ac.uns.walletapp.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rs.ac.uns.walletapp.dto.CategoryDTO;
 import rs.ac.uns.walletapp.dto.CreateCategoryDTO;
+import rs.ac.uns.walletapp.dto.CreatePredefinedCategoryDTO;
 import rs.ac.uns.walletapp.dto.UpdateCategoryDTO;
 import rs.ac.uns.walletapp.model.Category;
+import rs.ac.uns.walletapp.model.User;
 import rs.ac.uns.walletapp.service.CategoryService;
 
 import java.util.List;
@@ -62,5 +65,21 @@ public class CategoryController {
     public List<Category> getAllCategories() {
         return categoryService.getAllCategories();
     }
+
+
+    @PostMapping("/predefined")
+    public ResponseEntity<?> createPredefinedCategory(@RequestBody CreatePredefinedCategoryDTO dto, HttpSession session) {
+        try {
+            User loggedUser = (User) session.getAttribute("user");
+            if (loggedUser == null || !"ADMIN".equalsIgnoreCase((loggedUser.getRole().toString()))) {
+                return new ResponseEntity<>("Nedozvoljen pristup — samo admin može dodati predefinisanu kategoriju.", HttpStatus.FORBIDDEN);
+            }
+
+            return ResponseEntity.ok(categoryService.createPredefinedCategory(dto));
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }
 

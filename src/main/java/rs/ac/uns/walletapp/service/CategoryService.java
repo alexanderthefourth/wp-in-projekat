@@ -3,6 +3,7 @@ package rs.ac.uns.walletapp.service;
 import org.springframework.stereotype.Service;
 import rs.ac.uns.walletapp.dto.CategoryDTO;
 import rs.ac.uns.walletapp.dto.CreateCategoryDTO;
+import rs.ac.uns.walletapp.dto.CreatePredefinedCategoryDTO;
 import rs.ac.uns.walletapp.dto.UpdateCategoryDTO;
 import rs.ac.uns.walletapp.model.Category;
 import rs.ac.uns.walletapp.model.User;
@@ -105,5 +106,20 @@ public class CategoryService {
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
+
+    public CategoryDTO createPredefinedCategory(CreatePredefinedCategoryDTO dto) {
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            throw new RuntimeException("naziv kategorije ne moze biti prazan");
+        }
+
+        Category category = new Category();
+        category.setName(dto.getName());
+        category.setType(dto.getType());
+        category.setPredefined(true);
+        category.setUser(null);
+
+        return new CategoryDTO(categoryRepository.save(category));
+    }
+
 }
 

@@ -13,30 +13,47 @@ const routes = [
     path: "/registered",
     name: "registered",
     component: RegisteredUser,
-    meta: { requiresAuth: true, allowedRoles: ["USER", "ADMIN"] },
+    meta: {
+      requiresAuth: true,
+      allowedRoles: ["USER", "ADMIN"],
+      title: "User Dashboard"
+    },
   },
   {
     path: "/registered-admin",
     name: "registered-admin",
     component: RegisteredAdmin,
-    meta: { requiresAuth: true, allowedRoles: ["ADMIN"] },
+    meta: {
+      requiresAuth: true,
+      allowedRoles: ["ADMIN"],
+      title: "Admin Dashboard"
+    },
   },
   {
     path: "/login",
     name: "login",
     component: LoginView,
-    meta: { requiresGuest: true },
+    meta: {
+      requiresGuest: true,
+      title: "Prijava"
+    },
   },
   {
     path: "/register",
     name: "register",
     component: RegisterView,
-    meta: { requiresGuest: true },
+    meta: {
+      requiresGuest: true,
+      title: "Registracija"
+    },
   },
   {
     path: "/blocked",
     name: "blocked",
     component: BlockedUser,
+    meta: {
+      title: "Blokirani ste"
+    }
   },
   { path: "/:pathMatch(.*)*", redirect: "/login" },
 ];
@@ -57,7 +74,7 @@ async function verifySession() {
 
     return user;
   } catch (error) {
-    console.warn("invalid session, clearing local storage");
+    console.warn("isetkla sesija, cistim localstorage");
     localStorage.removeItem("user");
     return null;
   }
@@ -74,7 +91,6 @@ function getDefaultRoute(user) {
 
 router.beforeEach(async (to) => {
   const user = await verifySession();
-  //console.log("Navigacija:", to.path, "| Korisnik:", user);
 
   if (to.meta.requiresGuest) {
     if (user) {

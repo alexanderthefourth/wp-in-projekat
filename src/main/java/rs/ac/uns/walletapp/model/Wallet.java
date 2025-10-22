@@ -1,5 +1,6 @@
 package rs.ac.uns.walletapp.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class Wallet{
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "wallet_id")
+    @JsonManagedReference
     private List<Transaction> transactions;
 
     private boolean savingsWallet;
