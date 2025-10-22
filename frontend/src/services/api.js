@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8080/api'
 
+
 export const http = axios.create({
   baseURL: 'http://localhost:8080/api',
 })
@@ -58,6 +59,8 @@ export const Users = {
   updateComment: (userId, comment) => api.put(`/users/${userId}/comment`, comment, {
     headers: { 'Content-Type': 'text/plain' }
   }),
+  updateProfile: (userId, payload) =>
+    api.put(`/users/profile`, payload, { params: { userId } }),
 }
 
 export const Wallets = {
@@ -71,7 +74,7 @@ export const Wallets = {
   updateSavings: (id, savings) =>
     api.put(`/wallets/${id}/savingsUpdate`, null, { params: { savings } }),
   archivedUpdate: (id, archived) =>
-    api.put(`/wallets/${id}/archivedUpdate`, null, { params: { archived } }),
+  api.put(`/wallets/${id}/archivedUpdate`, null, { params: { archived } }),
   updateCurrency: (id, currencyName) =>
     api.put(`/wallets/${id}/currencyUpdate`, null, { params: { currencyName } }),
   remove: (id) => api.delete(`/wallets/${id}/deleteWallet`),
@@ -79,7 +82,9 @@ export const Wallets = {
 
 export const Transactions = {
   create: (dto) => api.post('/transactions/createTransaction', dto),
+
   move: (dto) => api.post('/transactions/move', dto),
+
   byDay: () => api.get('/transactions/by-day'),
   byWeek: () => api.get('/transactions/by-week'),
   byMonth: () => api.get('/transactions/by-month'),
@@ -87,6 +92,17 @@ export const Transactions = {
   byYear: () => api.get('/transactions/by-year'),
   byUser: (userId) => api.get('/transactions/by-user', { params: { userId } }),
   all: (params) => api.get('/transactions/all', { params }),
+
+  setActiveRepeat: (id, active) =>
+    api.put(`/transactions/${id}/activeRepeat`, null, { params: { active } }),
+
+  setRepeatActive: (id, active) =>
+    api.patch(`/transactions/${id}/repeat`, null, { params: { active } }),
+
+  stopAllRepeats: ({ userId, walletId }) =>
+    api.post('/transactions/stop-all-repeats', null, {
+      params: { userId, walletId }
+    }),
 }
 
 export const Stats = {
@@ -112,4 +128,19 @@ export const Currencies = {
 
 export const Categories = {
   all: () => api.get('/categories/all'),
+
+  getForUser: (userId) => api.get( `/categories/${userId}`, { params: { userId } }),
+  create: (payload) =>
+    api.post(`/categories/createCategory`, payload),
+  update: (payload) =>
+    api.put(`/categories/updateCategory`, payload),
+  remove: (id) => api.delete(`/categories/${id}`),
 }
+
+export const Goal = {
+  getByWallet: (walletId) =>
+    api.get('/goals/by-wallet', { params: { walletId } }),
+
+  create: (payload) =>
+    api.post('/goals/createGoal', payload),
+};

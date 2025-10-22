@@ -19,6 +19,8 @@ import org.springframework.stereotype.Repository;
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
     List<Transaction> findAllByRepeatableTrueAndActiveRepeatTrue();
 
+    List<Transaction> findAllByRepeatableTrueAndActiveRepeatTrueAndFrequencyIgnoreCase(String frequency);
+
     List<Transaction> findByUser_Id(Integer userId);
 
     List<Transaction> findByCategory_Id(Integer categoryId);
@@ -42,15 +44,15 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     List<Transaction> findTop10ByDateOfExecutionOrderByAmountDesc(LocalDate date);
 
     @Query("SELECT t FROM Transaction t WHERE " +
-            "(:username IS NULL OR t.user.username = :username) AND " +
-            "(:categoryName IS NULL OR t.category.name = :categoryName) AND " +
+            "(:userId IS NULL OR t.user.id = :userId) AND " +
+            "(:categoryId IS NULL OR t.category.id = :categoryId) AND " +
             "(:minAmount IS NULL OR t.amount >= :minAmount) AND " +
             "(:maxAmount IS NULL OR t.amount <= :maxAmount) AND " +
             "(:startDate IS NULL OR t.dateOfExecution >= :startDate) AND " +
             "(:endDate IS NULL OR t.dateOfExecution <= :endDate)")
     List<Transaction> filterTransactions(
-            String username,
-            String categoryName,
+            Integer userId,
+            Integer categoryId,
             BigDecimal minAmount,
             BigDecimal maxAmount,
             LocalDate startDate,
@@ -58,5 +60,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, Intege
     );
 
 
+
+    List<Transaction> findAllByWalletIdAndRepeatableTrueAndActiveRepeatTrue(int walletId);
+
+    List<Transaction> findAllByUserIdAndRepeatableTrueAndActiveRepeatTrue(int userId);
+    List<Transaction> findByUserIdAndWalletIdAndRepeatableTrueAndActiveRepeatTrue(int userId, int walletId);
 
 }

@@ -21,12 +21,12 @@ public class CategoryController {
     }
 
 
-    @GetMapping
+    @GetMapping("{userId}")
     public List<CategoryDTO> getUserCategories(@RequestParam int userId) {
         return categoryService.getCategoriesForUser(userId);
     }
 
-    @PostMapping
+    @PostMapping("createCategory")
     public ResponseEntity<?> createCategory(@RequestBody CreateCategoryDTO createCategoryDTO) {
         try {
             return ResponseEntity.ok(categoryService.createCategoryForUser(createCategoryDTO));
@@ -36,7 +36,7 @@ public class CategoryController {
         }
     }
 
-    @PutMapping
+    @PutMapping("updateCategory")
     public ResponseEntity<?> updateCategory(UpdateCategoryDTO updateCategoryDTO ) {
         try{
             return ResponseEntity.ok(categoryService.updateUserCategory(updateCategoryDTO));
