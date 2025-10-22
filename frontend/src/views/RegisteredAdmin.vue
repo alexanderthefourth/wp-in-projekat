@@ -1,13 +1,18 @@
 <template>
-  <div class="admin-page">
-    <h2>Administratorski panel</h2>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>Administratorski Panel</h1>
+      <div class="header-actions">
+        <LogoutButton />
+      </div>
+    </div>
 
     <div v-if="loading" class="loading">
       Učitavanje podataka...
     </div>
 
     <div v-else>
-      <section class="dashboard">
+      <section class="dashboard card">
         <h3>Statistika sistema</h3>
         <div class="dashboard-stats">
           <div class="stat-card">
@@ -31,7 +36,7 @@
         <div class="top-tx-container">
           <div class="top-tx">
             <h4>Top 10 transakcija (poslednjih 30 dana)</h4>
-            <table v-if="dashboard.top10Last30Days && dashboard.top10Last30Days.length">
+            <table class="data-table" v-if="dashboard.top10Last30Days && dashboard.top10Last30Days.length">
               <thead>
               <tr>
                 <th>ID</th>
@@ -51,12 +56,12 @@
               </tr>
               </tbody>
             </table>
-            <p v-else>Nema transakcija u poslednjih 30 dana.</p>
+            <p v-else class="text-muted">Nema transakcija u poslednjih 30 dana.</p>
           </div>
 
           <div class="top-tx">
             <h4>Top 10 transakcija (poslednji dan)</h4>
-            <table v-if="dashboard.top10LastDay && dashboard.top10LastDay.length">
+            <table class="data-table" v-if="dashboard.top10LastDay && dashboard.top10LastDay.length">
               <thead>
               <tr>
                 <th>ID</th>
@@ -76,27 +81,29 @@
               </tr>
               </tbody>
             </table>
-            <p v-else>Nema transakcija u poslednjem danu.</p>
+            <p v-else class="text-muted">Nema transakcija u poslednjem danu.</p>
           </div>
         </div>
       </section>
 
-      <section class="user-management">
+      <section class="user-management card mt-4">
         <h3>Upravljanje korisnicima</h3>
 
-        <label for="userSelect">Izaberite korisnika:</label>
-        <select id="userSelect" v-model.number="selectedUserId" @change="loadUserTransactionsAndComment">
-          <option disabled value="">-- Odaberite korisnika --</option>
-          <option v-for="u in filteredUsers" :key="u.id" :value="u.id">
-            {{ u.firstName }} {{ u.lastName }} ({{ u.username }})
-          </option>
-        </select>
+        <div class="form-group">
+          <label for="userSelect">Izaberite korisnika:</label>
+          <select id="userSelect" v-model.number="selectedUserId" @change="loadUserTransactionsAndComment">
+            <option disabled value="">-- Odaberite korisnika --</option>
+            <option v-for="u in filteredUsers" :key="u.id" :value="u.id">
+              {{ u.firstName }} {{ u.lastName }} ({{ u.username }})
+            </option>
+          </select>
+        </div>
 
-        <div v-if="selectedUser">
+        <div v-if="selectedUser" class="user-details">
           <p><strong>Korisnik:</strong> {{ selectedUser.firstName }} {{ selectedUser.lastName }}</p>
           <p><strong>Status:</strong> {{ selectedUser.blocked ? "Blokiran" : "Aktivan" }}</p>
 
-          <button @click="toggleBlockUser(selectedUser.id)">
+          <button @click="toggleBlockUser(selectedUser.id)" class="btn btn-warn">
             {{ selectedUser.blocked ? "Odblokiraj" : "Blokiraj" }} korisnika
           </button>
 
@@ -106,12 +113,12 @@
               v-model="adminComment"
               placeholder="Unesite ili izmenite komentar..."
             ></textarea>
-            <button @click="saveComment(selectedUser.id)">Sačuvaj</button>
+            <button @click="saveComment(selectedUser.id)" class="btn btn-primary">Sačuvaj</button>
           </div>
 
           <div class="transactions">
             <h4>Transakcije korisnika</h4>
-            <table v-if="userTransactions.length">
+            <table class="data-table" v-if="userTransactions.length">
               <thead>
               <tr>
                 <th>ID</th>
@@ -129,18 +136,17 @@
               </tr>
               </tbody>
             </table>
-            <p v-else>Nema transakcija za ovog korisnika.</p>
+            <p v-else class="text-muted">Nema transakcija za ovog korisnika.</p>
           </div>
         </div>
       </section>
 
-
-      <section class="currency-management">
+      <section class="currency-management card mt-4">
         <h3>Upravljanje valutama</h3>
 
         <div class="currencies-list">
           <h4>Lista valuta (vrednosti u dinarima)</h4>
-          <table v-if="currencies.length">
+          <table class="data-table" v-if="currencies.length">
             <thead>
             <tr>
               <th>Naziv valute</th>
@@ -160,27 +166,28 @@
                   step="0.01"
                   min="0.01"
                   @change="updateCurrency(currency)"
+                  class="currency-input"
                 >
               </td>
               <td>
                 <button
                   v-if="currency.name !== 'RSD'"
                   @click="deleteCurrency(currency.name)"
-                  class="btn-danger"
+                  class="btn btn-danger"
                 >
                   Obriši
                 </button>
-                <span v-else class="read-only">Osnovna valuta</span>
+                <span v-else class="text-muted">Osnovna valuta</span>
               </td>
             </tr>
             </tbody>
           </table>
-          <p v-else>Nema valuta u sistemu.</p>
+          <p v-else class="text-muted">Nema valuta u sistemu.</p>
         </div>
 
         <div class="add-currency">
           <h4>Dodaj novu valutu</h4>
-          <div class="form-row">
+          <div class="form-grid">
             <div class="form-group">
               <label for="currencyName">Naziv valute:</label>
               <input
@@ -202,21 +209,21 @@
               >
             </div>
             <div class="form-group">
-              <button @click="addCurrency" class="btn-primary add-btn">
+              <button @click="addCurrency" class="btn btn-primary add-btn">
                 Dodaj valutu
               </button>
             </div>
           </div>
-          <small>Unesite koliko dinara vredi 1 {{ newCurrency.name || 'novo' }}</small>
+          <small class="text-muted">Unesite koliko dinara vredi 1 {{ newCurrency.name || 'novo' }}</small>
         </div>
       </section>
 
-      <section class="monitoring">
+      <section class="monitoring card mt-4">
         <h3>Monitoring transakcija</h3>
 
         <div class="filters">
           <div class="filter-row">
-            <div class="filter-group">
+            <div class="form-group">
               <label for="filterUser">Korisnik:</label>
               <select id="filterUser" v-model="filters.userId">
                 <option value="">Svi korisnici</option>
@@ -226,7 +233,7 @@
               </select>
             </div>
 
-            <div class="filter-group">
+            <div class="form-group">
               <label for="filterCategory">Kategorija:</label>
               <select id="filterCategory" v-model="filters.categoryName">
                 <option value="">Sve kategorije</option>
@@ -236,24 +243,24 @@
               </select>
             </div>
 
-            <div class="filter-group">
+            <div class="form-group">
               <label for="minAmount">Min iznos:</label>
               <input id="minAmount" type="number" v-model="filters.minAmount" step="0.01">
             </div>
 
-            <div class="filter-group">
+            <div class="form-group">
               <label for="maxAmount">Max iznos:</label>
               <input id="maxAmount" type="number" v-model="filters.maxAmount" step="0.01">
             </div>
           </div>
 
           <div class="filter-row">
-            <div class="filter-group">
+            <div class="form-group">
               <label for="filterDate">Datum:</label>
               <input id="filterDate" type="date" v-model="filters.date">
             </div>
 
-            <div class="filter-group">
+            <div class="form-group">
               <label for="sortBy">Sortiraj po:</label>
               <select id="sortBy" v-model="sortBy">
                 <option value="dateDesc">Datum (novije ka starijim)</option>
@@ -263,16 +270,16 @@
               </select>
             </div>
 
-            <div class="filter-actions">
-              <button @click="applyFilters" class="btn-primary">Primeni filtere</button>
-              <button @click="resetFilters" class="btn-secondary">Resetuj</button>
+            <div class="form-actions">
+              <button @click="applyFilters" class="btn btn-primary">Primeni filtere</button>
+              <button @click="resetFilters" class="btn btn-subtle">Resetuj</button>
             </div>
           </div>
         </div>
 
         <div class="transactions-table">
           <h4>Sve transakcije ({{ filteredTransactions.length }})</h4>
-          <table v-if="filteredTransactions.length">
+          <table class="data-table" v-if="filteredTransactions.length">
             <thead>
             <tr>
               <th @click="sortByField('id')" class="sortable">ID</th>
@@ -300,12 +307,10 @@
             </tr>
             </tbody>
           </table>
-          <p v-else class="no-data">Nema transakcija za prikaz sa trenutnim filterima.</p>
+          <p v-else class="text-muted">Nema transakcija za prikaz sa trenutnim filterima.</p>
         </div>
       </section>
     </div>
-
-    <LogoutButton />
   </div>
 </template>
 
@@ -334,7 +339,7 @@ const dashboard = ref({
 const users = ref([]);
 const selectedUserId = ref("");
 const selectedUser = ref(null);
-const userTransactions = ref([]); // Promenjeno ime da se ne bi mešalo sa allTransactions
+const userTransactions = ref([]);
 const adminComment = ref("");
 
 const currencies = ref([]);
@@ -552,10 +557,8 @@ async function loadAllTransactions() {
 
 async function applyFilters() {
   try {
-    // ✅ Nađi username za izabranog korisnika (backend očekuje username, ne userId)
     const selectedUser = users.value.find(u => u.id === filters.value.userId);
 
-    // ✅ Formiraj parametre
     const params = {
       username: selectedUser ? selectedUser.username : undefined,
       categoryName: filters.value.categoryName || undefined,
@@ -564,14 +567,12 @@ async function applyFilters() {
       date: filters.value.date || undefined
     };
 
-    // ✅ Očisti prazne vrednosti da ne šalješ null/string "undefined"
     Object.keys(params).forEach(
       (key) => params[key] === undefined && delete params[key]
     );
 
     console.log('Primenjujem filtere:', params);
 
-    // ✅ Pozovi API sa čistim parametrima
     const { data } = await Transactions.all(params);
     allTransactions.value = data;
 
@@ -583,7 +584,6 @@ async function applyFilters() {
     alert("Došlo je do greške pri filtriranju transakcija.");
   }
 }
-
 
 function resetFilters() {
   filters.value = {
@@ -618,7 +618,7 @@ const filteredTransactions = computed(() => {
 });
 
 function sortByField(field) {
-
+  // Implementation for field sorting
 }
 
 function formatAmount(amount) {
@@ -634,135 +634,117 @@ function formatDate(dateString) {
 </script>
 
 <style scoped>
+.admin-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.admin-header h1 {
+  color: #1f2937;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .loading {
   text-align: center;
-  padding: 20px;
+  padding: 60px 20px;
   font-size: 18px;
+  color: #6b7280;
 }
 
-.admin-page {
+.dashboard-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.stat-card {
+  background: #f8fafc;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  border-radius: 12px;
+  flex: 1 1 220px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
 }
 
-select {
-  margin-bottom: 15px;
-  padding: 6px;
-  border-radius: 6px;
+.stat-card h4 {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 8px;
 }
 
-button {
-  margin-top: 10px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.stat-card p {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
-.btn-primary {
-  background-color: #1976d2;
-  color: white;
+.top-tx-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-top: 30px;
 }
 
-.btn-primary:hover {
-  background-color: #0d47a1;
+.top-tx {
+  flex: 1;
+  min-width: 400px;
 }
 
-.btn-danger {
-  background-color: #d32f2f;
-  color: white;
-}
-
-.btn-danger:hover {
-  background-color: #b71c1c;
-}
-
-.transactions table,
-.currencies-list table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-.transactions th,
-.transactions td,
-.currencies-list th,
-.currencies-list td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
+.user-details {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 8px;
 }
 
 .comment-section {
-  margin-top: 15px;
+  margin: 20px 0;
 }
 
-textarea {
+.comment-section textarea {
   width: 100%;
-  min-height: 60px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  min-height: 80px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  margin-bottom: 12px;
+  font-family: inherit;
 }
 
-.currency-management,
-.monitoring {
+.currency-input {
+  width: 120px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 2px solid #e5e7eb;
+}
+
+.add-currency {
   margin-top: 30px;
-  padding-top: 20px;
-  border-top: 2px solid #eee;
-}
-
-.form-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.form-group {
-  margin-bottom: 0;
-  flex: 0 0 auto;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-.form-group input {
-  width: 120px;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-.add-btn {
-  margin-top: 0;
-  white-space: nowrap;
-}
-
-.add-currency small {
-  display: block;
-  margin-top: 8px;
-  color: #666;
-  font-size: 0.85em;
-}
-
-.currencies-list input[type="number"] {
-  width: 120px;
-  padding: 4px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
-
-.read-only {
-  color: #666;
-  font-style: italic;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 8px;
 }
 
 .filters {
-  background: #f5f5f5;
+  background: #f8fafc;
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -773,63 +755,12 @@ textarea {
   gap: 20px;
   margin-bottom: 15px;
   flex-wrap: wrap;
-  align-items: flex-end;
 }
 
-.filter-group {
+.form-actions {
   display: flex;
-  flex-direction: column;
-  min-width: 150px;
-}
-
-.filter-group label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  font-size: 0.9em;
-}
-
-.filter-group input,
-.filter-group select {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.filter-actions {
-  display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-end;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #545b62;
-}
-
-.transactions-table {
-  margin-top: 20px;
-}
-
-.transactions-table table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.transactions-table th,
-.transactions-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-}
-
-.transactions-table th {
-  background-color: #f8f9fa;
-  font-weight: bold;
 }
 
 .sortable {
@@ -838,56 +769,29 @@ textarea {
 }
 
 .sortable:hover {
-  background-color: #e9ecef;
+  background-color: #f3f4f6;
 }
 
 .negative {
-  color: #dc3545;
-  font-weight: bold;
-}
-
-.no-data {
-  text-align: center;
-  color: #6c757d;
-  font-style: italic;
-  margin-top: 20px;
+  color: #ef4444;
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {
+  .admin-container {
+    padding: 16px;
+  }
+
   .filter-row {
     flex-direction: column;
   }
 
-  .filter-group {
+  .top-tx {
     min-width: 100%;
   }
-}
-.dashboard {
-  margin-bottom: 40px;
-  border-bottom: 2px solid #ccc;
-  padding-bottom: 20px;
-}
-.dashboard-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-.stat-card {
-  background: #f3f3f3;
-  padding: 15px;
-  border-radius: 8px;
-  flex: 1 1 220px;
-  text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-.top-tx-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
-  margin-top: 20px;
-}
-.top-tx {
-  flex: 1;
-  min-width: 400px;
+
+  .dashboard-stats {
+    flex-direction: column;
+  }
 }
 </style>

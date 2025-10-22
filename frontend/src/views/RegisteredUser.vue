@@ -1,224 +1,230 @@
 <template>
-  <div class="top-row">
-  <UiCard class="tile balans" v-if="wallet">
-    <h2 style="margin: 0">
-      <strong>
-        {{ money(saved, currency) }}
-        <template v-if="wallet.goal && targetAmount">
-          / {{ money(targetAmount, currency) }}
-        </template>
-      </strong>
-    </h2>
-    <div class="muted" style="margin-top: 8px">
-      <div><strong>{{ wallet.name }}</strong></div>
-      <div>Valuta: {{ wallet?.currency?.name || '—' }} · Tip: {{ (wallet?.savingsWallet ?? wallet?.savings) ? 'Štednja' : 'Standard' }}</div>
+  <div class="user-container">
+    <div class="user-header">
+      <h1>Moj Novčanik</h1>
+      <div class="header-actions">
+        <LogoutButton />
+      </div>
     </div>
-  </UiCard>
 
-  <UiCard v-else class="tile balans">
-    <h2 style="margin: 0"><strong>—</strong></h2>
-    <div style="color: var(--ink-muted); margin-top: 8px">
-      Izaberite novčanik iz liste da prikažete detalje.
-    </div>
-    <LogoutButton />
-  </UiCard>
-</div>
-
-<UiCard v-if="wallet" style="margin-top: 12px;">
-  <div class="flex" style="gap: 8px; align-items:center;">
-    <select v-model="period">
-      <option value="all">Sve</option>
-      <option value="day">Dan</option>
-      <option value="week">Nedelja</option>
-      <option value="month">Mesec</option>
-      <option value="quarter">Kvartal</option>
-    </select>
-    <input v-if="period !== 'all'" type="date" v-model="anchor" />
-  </div>
-</UiCard>
-
-<UiCard v-if="wallet" style="margin-top: 16px;">
-  <div class="flex-between" style="margin-bottom: 8px;">
-    <strong>Transakcije</strong>
-    <div class="flex" style="gap:8px; align-items:center;">
-      <span class="muted" v-if="txRows?.length">{{ txRows.length }} stavki</span>
-      <button class="btn warn" :disabled="stopAllBusy" @click="stopAllRepeats">
-        {{ stopAllBusy ? 'Zaustavljam…' : 'Zaustavi sva ponavljanja' }}
-      </button>
-    </div>
-  </div>
-
-  <div v-if="txRows && txRows.length">
-    <table class="tx-table">
-          <thead>
-      <tr>
-        <th>Datum</th>
-        <th>Naziv</th>
-        <th>Tip</th>
-        <th>Iznos</th>
-        <th>Izvor</th>
-        <th>Cilj</th>
-        <th>Ponavljanje</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr v-for="t in txRows" :key="t.id">
-        <td>{{ (t.dateOfExecution || t.createdAt || '').toString().slice(0,10) }}</td>
-        <td>{{ t.name || t.transactionName || '—' }}</td>
-        <td>{{ t.type === 'INCOME' ? 'Prihod' : t.type === 'EXPENSE' ? 'Rashod' : (t.type || '—') }}</td>
-        <td>{{ money(Number(t.amount || 0), currency) }}</td>
-        <td>#{{ t.sourceWalletId ?? t.sourceId ?? '—' }}</td>
-        <td>#{{ t.targetWalletId ?? t.targetId ?? '—' }}</td>
-
-        <td>
-      <template v-if="t.repeatable !== undefined">
-        <span :class="t.activeRepeat ? 'pill pill-soft' : 'pill'">
-          {{ t.activeRepeat ? 'Aktivno' : 'Neaktivno' }}
-        </span>
-        <button
-          class="btn"
-          style="margin-left:8px"
-          @click="toggleRepeat(t)"
-        >
-          {{ repeatTogglingId === t.id ? '...' : (t.activeRepeat ? 'Zaustavi' : 'Aktiviraj') }}
-        </button>
-      </template>
-      <template v-else>
-        <span class="muted">—</span>
-      </template>
-    </td>
-      </tr>
-    </tbody>
-    </table>
-  </div>
-
-  <div v-else class="muted">Nema transakcija za ovaj novčanik.</div>
-</UiCard>
-
-  <UiCard style="margin-top: 8px;">
-  <div class="flex-between" style="margin-bottom: 8px;">
-    <strong>Moji novčanici</strong>
-    <button class="btn" @click="showCreateWallet = !showCreateWallet">
-      {{ showCreateWallet ? 'Zatvori' : '+ Kreiraj novčanik' }}
-    </button>
-  </div>
-
-  <div class="wallet-list">
-    <div
-      v-for="w in activeWallets"
-      :key="w.id"
-      class="wallet-row"
-      :class="{ active: sourceWalletId === w.id }"
-      @click="selectSource(w.id)"
-    >
-      <div class="wallet-main">
-        <input
-          type="radio"
-          :checked="sourceWalletId === w.id"
-          @change="selectSource(w.id)"
-        />
-
-        <div v-if="editingWalletId !== w.id" class="wallet-title">
-          <strong>{{ w.name }}</strong>
-        </div>
-
-        <div v-else class="wallet-edit-grid" @click.stop>
-          <input v-model="walletEditForm.name" placeholder="Naziv" />
-          <select v-model="walletEditForm.currency">
-            <option value="RSD">RSD</option>
-            <option value="EUR">EUR</option>
-            <option value="USD">USD</option>
-          </select>
-          <label class="check tiny">
-            <input type="checkbox" v-model="walletEditForm.savings" />
-            Štednja
-          </label>
+    <div class="top-row">
+      <div class="card tile balans" v-if="wallet">
+        <h2 style="margin: 0">
+          <strong>
+            {{ money(saved, currency) }}
+            <template v-if="wallet.goal && targetAmount">
+              / {{ money(targetAmount, currency) }}
+            </template>
+          </strong>
+        </h2>
+        <div class="text-muted" style="margin-top: 8px">
+          <div><strong>{{ wallet.name }}</strong></div>
+          <div>Valuta: {{ wallet?.currency?.name || '—' }} · Tip: {{ (wallet?.savingsWallet ?? wallet?.savings) ? 'Štednja' : 'Standard' }}</div>
         </div>
       </div>
 
-      <div
-          v-if="isSavingsWallet(w) && hasGoal(w)"
-          class="goal-chip"
-          @click.stop
+      <div class="card tile balans" v-else>
+        <h2 style="margin: 0"><strong>—</strong></h2>
+        <div class="text-muted" style="margin-top: 8px">
+          Izaberite novčanik iz liste da prikažete detalje.
+        </div>
+      </div>
+    </div>
+
+    <div class="card" v-if="wallet" style="margin-top: 12px;">
+      <div class="flex gap-4">
+        <select v-model="period">
+          <option value="all">Sve</option>
+          <option value="day">Dan</option>
+          <option value="week">Nedelja</option>
+          <option value="month">Mesec</option>
+          <option value="quarter">Kvartal</option>
+        </select>
+        <input v-if="period !== 'all'" type="date" v-model="anchor" />
+      </div>
+    </div>
+
+    <div class="card" v-if="wallet" style="margin-top: 16px;">
+      <div class="flex-between" style="margin-bottom: 8px;">
+        <strong>Transakcije</strong>
+        <div class="flex gap-4">
+          <span class="text-muted" v-if="txRows?.length">{{ txRows.length }} stavki</span>
+          <button class="btn btn-warn" :disabled="stopAllBusy" @click="stopAllRepeats">
+            {{ stopAllBusy ? 'Zaustavljam…' : 'Zaustavi sva ponavljanja' }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="txRows && txRows.length">
+        <table class="data-table">
+          <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Naziv</th>
+            <th>Tip</th>
+            <th>Iznos</th>
+            <th>Izvor</th>
+            <th>Cilj</th>
+            <th>Ponavljanje</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="t in txRows" :key="t.id">
+            <td>{{ (t.dateOfExecution || t.createdAt || '').toString().slice(0,10) }}</td>
+            <td>{{ t.name || t.transactionName || '—' }}</td>
+            <td>{{ t.type === 'INCOME' ? 'Prihod' : t.type === 'EXPENSE' ? 'Rashod' : (t.type || '—') }}</td>
+            <td>{{ money(Number(t.amount || 0), currency) }}</td>
+            <td>#{{ t.sourceWalletId ?? t.sourceId ?? '—' }}</td>
+            <td>#{{ t.targetWalletId ?? t.targetId ?? '—' }}</td>
+
+            <td>
+              <template v-if="t.repeatable !== undefined">
+                  <span :class="t.activeRepeat ? 'pill pill-soft' : 'pill'">
+                    {{ t.activeRepeat ? 'Aktivno' : 'Neaktivno' }}
+                  </span>
+                <button
+                  class="btn btn-subtle"
+                  style="margin-left:8px"
+                  @click="toggleRepeat(t)"
+                >
+                  {{ repeatTogglingId === t.id ? '...' : (t.activeRepeat ? 'Zaustavi' : 'Aktiviraj') }}
+                </button>
+              </template>
+              <template v-else>
+                <span class="text-muted">—</span>
+              </template>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-else class="text-muted">Nema transakcija za ovaj novčanik.</div>
+    </div>
+
+    <div class="card" style="margin-top: 8px;">
+      <div class="flex-between" style="margin-bottom: 8px;">
+        <strong>Moji novčanici</strong>
+        <button class="btn btn-primary" @click="showCreateWallet = !showCreateWallet">
+          {{ showCreateWallet ? 'Zatvori' : '+ Kreiraj novčanik' }}
+        </button>
+      </div>
+
+      <div class="wallet-list">
+        <div
+          v-for="w in activeWallets"
+          :key="w.id"
+          class="wallet-row"
+          :class="{ active: sourceWalletId === w.id }"
+          @click="selectSource(w.id)"
         >
-          <ProgressRing :value="goalPct(w)" :size="52" />
-          <div class="goal-chip-text">
-            <div class="muted">Cilj</div>
-            <div class="tight">
-              <strong>{{ money(Number(w.currBal ?? 0), w.currency?.name || w.currencyName || 'RSD') }}</strong>
-              <span>
-                /
-                {{ money(Number(w.goal.targetAmount ?? w.goal.target_amount ?? 0), w.currency?.name || w.currencyName || 'RSD') }}
-              </span>
+          <div class="wallet-main">
+            <input
+              type="radio"
+              :checked="sourceWalletId === w.id"
+              @change="selectSource(w.id)"
+            />
+
+            <div v-if="editingWalletId !== w.id" class="wallet-title">
+              <strong>{{ w.name }}</strong>
+            </div>
+
+            <div v-else class="wallet-edit-grid" @click.stop>
+              <input v-model="walletEditForm.name" placeholder="Naziv" />
+              <select v-model="walletEditForm.currency">
+                <option value="RSD">RSD</option>
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+              </select>
+              <label class="check tiny">
+                <input type="checkbox" v-model="walletEditForm.savings" />
+                Štednja
+              </label>
             </div>
           </div>
-        </div>
 
-        <div class="wallet-actions" @click.stop>
-          <template v-if="editingWalletId !== w.id">
-            <button class="btn subtle" @click="beginEdit(w)">Uredi</button>
+          <div
+            v-if="isSavingsWallet(w) && hasGoal(w)"
+            class="goal-chip"
+            @click.stop
+          >
+            <ProgressRing :value="goalPct(w)" :size="52" />
+            <div class="goal-chip-text">
+              <div class="text-muted">Cilj</div>
+              <div class="tight">
+                <strong>{{ money(Number(w.currBal ?? 0), w.currency?.name || w.currencyName || 'RSD') }}</strong>
+                <span>
+                  /
+                  {{ money(Number(w.goal.targetAmount ?? w.goal.target_amount ?? 0), w.currency?.name || w.currencyName || 'RSD') }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="wallet-actions" @click.stop>
+            <template v-if="editingWalletId !== w.id">
+              <button class="btn btn-subtle" @click="beginEdit(w)">Uredi</button>
+              <button
+                class="btn btn-warn"
+                @click="toggleArchive(w)"
+                :disabled="archivingId === w.id"
+              >
+                {{ archivingId === w.id ? '...' : 'Arhiviraj' }}
+              </button>
+              <button class="btn btn-danger" @click="confirmDelete(w)">Obriši</button>
+            </template>
+
+            <template v-else>
+              <button class="btn btn-accent" :disabled="savingWallet" @click="saveWallet(w)">Sačuvaj</button>
+              <button class="btn btn-subtle" :disabled="savingWallet" @click="cancelEdit">Otkaži</button>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="!activeWallets.length" class="text-muted">
+        Nema aktivnih novčanika.
+      </div>
+
+      <div v-if="walletEditConversionPreview" class="text-muted conversion-preview">
+        {{ walletEditConversionPreview }}
+      </div>
+    </div>
+
+    <div class="card" v-if="archivedWallets.length" style="margin-top: 16px;">
+      <div class="flex-between" style="margin-bottom: 8px;">
+        <strong>Arhivirani novčanici</strong>
+      </div>
+
+      <div class="wallet-list">
+        <div
+          v-for="w in archivedWallets"
+          :key="w.id"
+          class="wallet-row archived"
+        >
+          <div class="wallet-main">
+            <input type="radio" disabled />
+            <div class="wallet-title">
+              <strong>{{ w.name }}</strong>
+            </div>
+          </div>
+
+          <div class="wallet-meta">
+            <span class="pill">{{ w.currencyName || w.currency?.name || '—' }}</span>
             <button
-              class="btn warn"
-              @click="toggleArchive(w)"
+              class="btn btn-primary"
+              style="margin-left: 8px;"
+              @click.stop="toggleArchive(w)"
               :disabled="archivingId === w.id"
             >
-              {{ archivingId === w.id ? '...' : 'Arhiviraj' }}
+              {{ archivingId === w.id ? '...' : 'Vrati' }}
             </button>
-            <button class="btn danger" @click="confirmDelete(w)">Obriši</button>
-          </template>
-
-          <template v-else>
-            <button class="btn accent" :disabled="savingWallet" @click="saveWallet(w)">Sačuvaj</button>
-            <button class="btn" :disabled="savingWallet" @click="cancelEdit">Otkaži</button>
-          </template>
+          </div>
         </div>
       </div>
     </div>
 
-    <div v-if="!activeWallets.length" class="muted">
-      Nema aktivnih novčanika.
-    </div>
-
-  <div v-if="walletEditConversionPreview" class="muted conversion-preview">
-    {{ walletEditConversionPreview }}
-  </div>
-</UiCard>
-
-<UiCard v-if="archivedWallets.length" style="margin-top: 16px;">
-  <div class="flex-between" style="margin-bottom: 8px;">
-    <strong>Arhivirani novčanici</strong>
-  </div>
-
-  <div class="wallet-list">
-    <div
-      v-for="w in archivedWallets"
-      :key="w.id"
-      class="wallet-row archived"
-    >
-      <div class="wallet-main">
-        <input type="radio" disabled />
-        <div class="wallet-title">
-          <strong>{{ w.name }}</strong>
-        </div>
-      </div>
-
-      <div class="wallet-meta">
-        <span class="pill">{{ w.currencyName || w.currency?.name || '—' }}</span>
-        <button
-          class="btn"
-          style="margin-left: 8px;"
-          @click.stop="toggleArchive(w)"
-          :disabled="archivingId === w.id"
-        >
-          {{ archivingId === w.id ? '...' : 'Vrati' }}
-        </button>
-      </div>
-    </div>
-  </div>
-</UiCard>
-
-
-    <UiCard v-if="showCreateWallet" style="margin-top: 20px;">
+    <div class="card" v-if="showCreateWallet" style="margin-top: 20px;">
       <h3>Kreiraj novi novčanik</h3>
       <div class="form-grid">
         <input v-model="walletForm.name" placeholder="Naziv novčanika" />
@@ -246,201 +252,192 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn accent" :disabled="walletSaving" @click="submitWallet">
+          <button class="btn btn-accent" :disabled="walletSaving" @click="submitWallet">
             {{ walletSaving ? 'Čuvanje…' : 'Kreiraj' }}
           </button>
-          <span v-if="walletError" class="err">{{ walletError }}</span>
+          <span v-if="walletError" class="error-message">{{ walletError }}</span>
         </div>
       </div>
-    </UiCard>
+    </div>
 
     <div class="top-row">
-      <UiCard v-if="wallet?.goal" class="tile goal-card">
+      <div class="card tile goal-card" v-if="wallet?.goal">
         <strong>{{ wallet.goal.name }}</strong>
-        <div class="flex" style="align-items: center; gap: 18px; margin-top: 10px">
+        <div class="flex gap-4" style="align-items: center; margin-top: 10px">
           <ProgressRing class="progress-ring" :value="progressPct" />
           <div>
             <div>
               <strong>{{ money(saved, currency) }}</strong>
               <span> / {{ money(targetAmount, currency) }}</span>
             </div>
-            <div style="color: var(--ink-muted)">
+            <div class="text-muted">
               Novčanik: {{ wallet?.savings ? 'Štednja' : 'Standard' }}
             </div>
           </div>
         </div>
-      </UiCard>
+      </div>
     </div>
 
-    <UiCard>
-  <div class="flex-between">
-    <strong>2.2 Lične transakcije i transferi</strong>
-    <div class="flex" style="gap: 8px">
-      <button class="btn" @click="showTransfer = !showTransfer">
-        {{ showTransfer ? 'Zatvori' : 'Novo plaćanje' }}
-      </button>
+    <div class="card" style="margin-top: 20px;">
+      <div class="flex-between">
+        <strong>Plaćanja i transferi</strong>
+        <div class="flex gap-4">
+          <button class="btn btn-primary" @click="showTransfer = !showTransfer">
+            {{ showTransfer ? 'Zatvori' : 'Novo plaćanje' }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="showTransfer" class="form-grid" style="margin-top: 8px;">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="text-muted">Početni novčanik:</label>
+          <input type="text" :value="sourceWalletName || '—'" readonly />
+        </div>
+
+        <select v-model.number="transferForm.targetWalletId">
+          <option disabled value="">Odaberite odredišni novčanik</option>
+          <option
+            v-for="opt in activeWallets"
+            :key="opt.id"
+            :value="opt.id"
+            :disabled="opt.id === sourceWalletId"
+          >
+            {{ opt.name }} ({{ opt.currencyName || opt.currency?.name || '—' }})
+          </option>
+        </select>
+
+        <input
+          type="number"
+          v-model.number="transferForm.amount"
+          min="0"
+          step="0.01"
+          placeholder="Iznos"
+        />
+        <input v-model="transferForm.transactionName" placeholder="Naziv transakcije" />
+        <select v-model="transferForm.type">
+          <option value="INCOME">Prihod</option>
+          <option value="EXPENSE">Rashod</option>
+        </select>
+        <input type="date" v-model="transferForm.dateOfExecution" />
+
+        <label class="check">
+          <input type="checkbox" v-model="transferForm.repeatable" /> Ponavljajuća
+        </label>
+        <label class="check" :style="{ opacity: transferForm.repeatable ? 1 : 0.5 }">
+          <input type="checkbox" v-model="transferForm.activeRepeat" :disabled="!transferForm.repeatable" />
+          Aktivna
+        </label>
+
+        <select v-model="transferForm.frequency" :disabled="!transferForm.repeatable">
+          <option value="">— Odaberite učestalost —</option>
+          <option value="DAILY">Svakog dana</option>
+          <option value="WEEKLY">Nedeljno</option>
+          <option value="MONTHLY">Mesečno</option>
+          <option value="EVERY_2_MIN">Svakih 2 min (test)</option>
+        </select>
+
+        <select v-model="transferForm.categoryId">
+          <option :value="null">— Bez kategorije —</option>
+          <option v-for="c in categories" :key="c.id" :value="c.id">
+            {{ c.name }} ({{ c.type }})
+          </option>
+        </select>
+
+        <div class="flex gap-4" style="grid-column: 1 / -1; align-items:center;">
+          <input v-model="newCatName" placeholder="Nova kategorija" style="min-width: 200px;" />
+          <select v-model="newCatType" style="min-width: 140px;">
+            <option value="INCOME">Prihod</option>
+            <option value="EXPENSE">Rashod</option>
+          </select>
+          <button class="btn btn-primary" :disabled="creatingCat" @click.prevent="createCategoryInline">
+            {{ creatingCat ? 'Dodajem…' : 'Dodaj kategoriju' }}
+          </button>
+        </div>
+
+        <div class="form-actions" style="grid-column: 1 / -1;">
+          <button class="btn btn-primary" :disabled="transferSaving" @click="submitTransfer">
+            {{ transferSaving ? 'Prebacujem…' : 'Prebaci' }}
+          </button>
+          <span v-if="transferError" class="error-message">{{ transferError }}</span>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div v-if="showTransfer" class="form-grid" style="margin-top: 8px;">
-    <div class="form-row" style="grid-column: 1 / -1;">
-      <label class="muted">Početni novčanik:</label>
-      <input type="text" :value="sourceWalletName || '—'" readonly />
+    <div class="card" style="margin-top: 16px;">
+      <div class="flex-between" style="margin-bottom: 8px;">
+        <strong>Statistika i pregled</strong>
+        <div class="flex gap-4">
+          <select v-model="granularity">
+            <option value="DAY">Dan</option>
+            <option value="WEEK">Nedelja</option>
+            <option value="MONTH">Mesec</option>
+            <option value="YEAR">Godina</option>
+          </select>
+          <input type="date" v-model="from" />
+          <input type="date" v-model="to" />
+          <input type="number" v-model.number="minAmount" placeholder="Min iznos" style="width:120px;">
+          <input type="number" v-model.number="maxAmount" placeholder="Max iznos" style="width:120px;">
+          <button class="btn btn-primary" @click="loadStats">Primeni</button>
+        </div>
+      </div>
+
+      <div>
+        <canvas id="seriesChart" height="140"></canvas>
+      </div>
+
+      <div class="grid2" style="margin-top:12px;">
+        <div>
+          <canvas id="catChart" height="160"></canvas>
+        </div>
+        <div>
+          <table class="data-table">
+            <thead>
+            <tr><th colspan="4">Top 10 troškova</th></tr>
+            <tr>
+              <th>Datum</th><th>Naziv</th><th>Kategorija</th><th>Iznos</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="t in topExpensesRows" :key="t.id">
+              <td>{{ (t.dateOfExecution||'').toString().slice(0,10) }}</td>
+              <td>{{ t.name }}</td>
+              <td>{{ t.categoryName || '—' }}</td>
+              <td>{{ money(t.amount, currency) }}</td>
+            </tr>
+            <tr v-if="!topExpensesRows.length"><td colspan="4" class="text-muted">Nema stavki.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
-    <select v-model.number="transferForm.targetWalletId">
-      <option disabled value="">Odaberite odredišni novčanik</option>
-      <option
-        v-for="opt in activeWallets"
-        :key="opt.id"
-        :value="opt.id"
-        :disabled="opt.id === sourceWalletId"
-      >
-        {{ opt.name }} ({{ opt.currencyName || opt.currency?.name || '—' }})
-      </option>
-    </select>
-
-    <input
-      type="number"
-      v-model.number="transferForm.amount"
-      min="0"
-      step="0.01"
-      placeholder="Iznos"
-    />
-    <input v-model="transferForm.transactionName" placeholder="Naziv transakcije" />
-    <select v-model="transferForm.type">
-      <option value="INCOME">Prihod</option>
-      <option value="EXPENSE">Rashod</option>
-    </select>
-    <input type="date" v-model="transferForm.dateOfExecution" />
-
-    <label class="check">
-      <input type="checkbox" v-model="transferForm.repeatable" /> Ponavljajuća
-    </label>
-    <label class="check" :style="{ opacity: transferForm.repeatable ? 1 : 0.5 }">
-      <input type="checkbox" v-model="transferForm.activeRepeat" :disabled="!transferForm.repeatable" />
-      Aktivna
-    </label>
-
-    <input v-model="transferForm.frequency" :disabled="!transferForm.repeatable" placeholder="Frekvencija (npr. P1M)" />
-
-    <select v-model="transferForm.frequency" :disabled="!transferForm.repeatable">
-      <option value="">— Odaberite učestalost —</option>
-      <option value="DAILY">Svakog dana</option>
-      <option value="WEEKLY">Nedeljno</option>
-      <option value="MONTHLY">Mesečno</option>
-      <option value="EVERY_2_MIN">Svakih 2 min (test)</option>
-    </select>
-
-    <div class="form-actions">
-      <button class="btn" :disabled="transferSaving" @click="submitTransfer">
-        {{ transferSaving ? 'Prebacujem…' : 'Prebaci' }}
-      </button>
-      <span v-if="transferError" class="err">{{ transferError }}</span>
-    </div>
-
-    <!-- Category selection for this transaction -->
-    <select v-model="transferForm.categoryId">
-      <option :value="null">— Bez kategorije —</option>
-      <option v-for="c in categories" :key="c.id" :value="c.id">
-        {{ c.name }} ({{ c.type }})
-      </option>
-    </select>
-
-    <!-- Inline “Create new category” row (optional) -->
-    <div class="flex" style="gap:8px; align-items:center;">
-      <input v-model="newCatName" placeholder="Nova kategorija" style="min-width: 200px;" />
-      <select v-model="newCatType" style="min-width: 140px;">
-        <option value="INCOME">Prihod</option>
-        <option value="EXPENSE">Rashod</option>
-      </select>
-      <button class="btn" :disabled="creatingCat" @click.prevent="createCategoryInline">
-        {{ creatingCat ? 'Dodajem…' : 'Dodaj kategoriju' }}
-      </button>
-    </div>
-    <div v-if="catLoading" class="muted">Učitavanje kategorija…</div>
-    <div v-if="catError" class="err">{{ catError }}</div>
-
-  </div>
-</UiCard>
-
-  <UiCard style="margin-top: 16px;">
-  <div class="flex-between" style="margin-bottom: 8px;">
-    <strong>Statistika i pregled</strong>
-    <div class="flex" style="gap:8px;align-items:center;">
-      <select v-model="granularity">
-        <option value="DAY">Dan</option>
-        <option value="WEEK">Nedelja</option>
-        <option value="MONTH">Mesec</option>
-        <option value="YEAR">Godina</option>
-      </select>
-      <input type="date" v-model="from" />
-      <input type="date" v-model="to" />
-      <input type="number" v-model.number="minAmount" placeholder="Min iznos" style="width:120px;">
-      <input type="number" v-model.number="maxAmount" placeholder="Max iznos" style="width:120px;">
-      <button class="btn" @click="loadStats">Primeni</button>
-    </div>
-  </div>
-
-  <div>
-    <canvas id="seriesChart" height="140"></canvas>
-  </div>
-
-  <div class="grid2" style="margin-top:12px;">
-    <div>
-      <canvas id="catChart" height="160"></canvas>
-    </div>
-    <div>
-      <table class="tx-table">
-        <thead>
-          <tr><th colspan="4">Top 10 troškova</th></tr>
-          <tr>
-            <th>Datum</th><th>Naziv</th><th>Kategorija</th><th>Iznos</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="t in topExpensesRows" :key="t.id">
-            <td>{{ (t.dateOfExecution||'').toString().slice(0,10) }}</td>
-            <td>{{ t.name }}</td>
-            <td>{{ t.categoryName || '—' }}</td>
-            <td>{{ money(t.amount, currency) }}</td>
-          </tr>
-          <tr v-if="!topExpensesRows.length"><td colspan="4" class="muted">Nema stavki.</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</UiCard>
-
-<UiCard style="margin-top: 20px;">
-  <h3>Uredi profil</h3>
-  <div class="form-grid">
-    <input v-model="editUserForm.firstName" placeholder="Ime" />
-    <input v-model="editUserForm.lastName" placeholder="Prezime" />
-    <input v-model="editUserForm.email" type="email" placeholder="Email" />
-    <input v-model="editUserForm.birthDate" type="date" placeholder="Datum rođenja" />
-    <div class="form-actions">
-      <button class="btn accent" :disabled="savingUser" @click="saveUserProfile">
-        {{ savingUser ? 'Čuvanje…' : 'Sačuvaj promene' }}
-      </button>
-      <span v-if="userError" class="err">{{ userError }}</span>
+    <div class="card" style="margin-top: 20px;">
+      <h3>Uredi profil</h3>
+      <div class="form-grid">
+        <input v-model="editUserForm.firstName" placeholder="Ime" />
+        <input v-model="editUserForm.lastName" placeholder="Prezime" />
+        <input v-model="editUserForm.email" type="email" placeholder="Email" />
+        <input v-model="editUserForm.birthDate" type="date" placeholder="Datum rođenja" />
+        <div class="form-actions">
+          <button class="btn btn-accent" :disabled="savingUser" @click="saveUserProfile">
+            {{ savingUser ? 'Čuvanje…' : 'Sačuvaj promene' }}
+          </button>
+          <span v-if="userError" class="error-message">{{ userError }}</span>
+        </div>
+      </div>
     </div>
   </div>
-</UiCard>
-
 </template>
 
 <script setup>
 import LogoutButton from '@/components/LogoutButton.vue'
 import { ref, onMounted, computed, watch } from 'vue'
-import UiCard from '../components/UiCard.vue'
 import { Stats } from '../services/api'
 import ProgressRing from '../components/ProgressRing.vue'
 import { Wallets, Transactions } from '../services/api'
 import Chart from 'chart.js/auto'
 import { Users } from '../services/api'
 import { Categories, Goal } from '../services/api'
-
 
 const showTransfer = ref(false)
 const showCreateWallet = ref(false)
@@ -526,7 +523,6 @@ const liveRefreshSec = ref(15)
 let liveTimer = null
 const stopAllBusy = ref(false)
 
-
 async function liveTick() {
   if (!liveOn.value) return
   if (!sourceWalletId.value) return
@@ -581,10 +577,9 @@ async function stopAllRepeats() {
   stopAllBusy.value = true;
   try {
     await Transactions.stopAllRepeats({ userId, walletId: sourceWalletId.value || undefined });
-    // refresh transactions & balance so the UI reflects inactive repeats
     if (sourceWalletId.value) {
       await loadWalletBundle(sourceWalletId.value);
-      await loadStats(); // optional, if your charts should also reflect changes
+      await loadStats();
     }
   } catch (e) {
     console.error('stopAllRepeats failed:', e?.response?.data || e);
@@ -628,9 +623,10 @@ async function createCategoryInline() {
 
 function isSavingsWallet(w) {
   return w?.savingsWallet === true
-      || w?.savings_wallet === true
-      || w?.savings === true;
+    || w?.savings_wallet === true
+    || w?.savings === true;
 }
+
 function readTargetAmount(w) {
   const g = w?.goal;
   const raw =
@@ -655,7 +651,6 @@ const targetAmount = computed(() => {
   const n = Number(raw)
   return Number.isFinite(n) ? n : 0
 })
-
 
 function goalPct(w) {
   const target = Number(w?.goal?.targetAmount ?? 0)
@@ -687,7 +682,6 @@ function coerceFlags(list) {
     savings:  w.savings  === true || w.savings  === 1 || w.savings  === 'true' || w.savings  === 'TRUE',
   }))
 }
-
 
 const editingWalletId = ref(null)
 
@@ -885,9 +879,9 @@ async function loadStats() {
   chartOrCreate('seriesChart', {
     type: 'line',
     data: { labels, datasets: [
-      { label: 'Prihod', data: income, tension: 0.25 },
-      { label: 'Rashod', data: expense, tension: 0.25 }
-    ]},
+        { label: 'Prihod', data: income, tension: 0.25 },
+        { label: 'Rashod', data: expense, tension: 0.25 }
+      ]},
     options: { responsive: true, maintainAspectRatio: false }
   })
 
@@ -1008,7 +1002,6 @@ async function submitTransfer() {
     transferSaving.value = false
   }
   await afterDataChangeReload()
-
 }
 
 async function submitWallet() {
@@ -1077,7 +1070,7 @@ async function loadUserWallets() {
       sourceWalletId.value = userWallets.value[0].id
     }
     console.log('[wallets] active:', userWallets.value.filter(x => !x.archived).length,
-                'archived:', userWallets.value.filter(x =>  x.archived).length)
+      'archived:', userWallets.value.filter(x =>  x.archived).length)
   } catch (e) {
     console.error('getAll wallets failed:', e?.response?.status, e?.response?.data || e)
     userWallets.value = []
@@ -1112,16 +1105,15 @@ async function loadWalletBundle(id) {
       frequency: t.frequency ?? t.freq ?? null,
     }));
 
-
     const g = w?.goal || null
     wallet.value = {
       ...w,
       goal: g
         ? {
-            ...g,
-            targetAmount: Number(g.targetAmount ?? g.target_amount ?? 0),
-            name: g.name ?? g.goal_name ?? 'Cilj',
-          }
+          ...g,
+          targetAmount: Number(g.targetAmount ?? g.target_amount ?? 0),
+          name: g.name ?? g.goal_name ?? 'Cilj',
+        }
         : null,
     }
 
@@ -1183,77 +1175,73 @@ function money(val, cur) {
 </script>
 
 <style scoped>
-.page-xl {
-  font-size: 18px;
-  line-height: 1.6;
+.user-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-.page-xl h3 {
-  margin-bottom: 12px;
-}
-
-.page-xl input,
-.page-xl select,
-.page-xl button {
-  font-size: 18px;
-  padding: 14px 16px;
-  border-radius: 14px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
-  gap: 12px;
-  margin: 16px 0 8px;
-}
-
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 8px;
-  border: 1px dashed var(--line);
-  border-radius: 12px;
-  background: #fffaf3;
-}
-
-.check.tiny { padding: 6px 8px; font-size: 14px; }
-
-.form-actions {
-  grid-column: 1 / -1;
+.user-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
 }
-.err {
-  color: #b00020;
+
+.user-header h1 {
+  color: #1f2937;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .wallet-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .wallet-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  border: 1px solid var(--line);
+  padding: 16px;
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
   cursor: pointer;
-  background: #fff;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.wallet-row:hover {
+  border-color: #4f46e5;
+  transform: translateY(-2px);
 }
 
 .wallet-row.active {
-  outline: 2px solid var(--accent, #4f46e5);
+  border-color: #4f46e5;
   background: #f8faff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
 }
 
 .wallet-main {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
 }
 
@@ -1270,15 +1258,9 @@ function money(val, cur) {
 }
 
 .wallet-row.archived {
-  opacity: 0.65;
+  opacity: 0.6;
+  background: #f9fafb;
 }
-
-.wallet-row.archived .wallet-actions,
-.wallet-row.archived .wallet-actions .btn {
-  pointer-events: all;
-  cursor: pointer;
-}
-
 
 .wallet-edit-grid {
   display: grid;
@@ -1287,61 +1269,106 @@ function money(val, cur) {
   align-items: center;
 }
 
+.wallet-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .pill {
-  border: 1px solid var(--line);
-  padding: 4px 8px;
-  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  padding: 4px 12px;
+  border-radius: 20px;
   font-size: 12px;
+  background: white;
 }
 
 .pill-soft {
   background: #fffaf3;
   border-color: #f6e3b4;
+  color: #92400e;
 }
 
-.muted {
-  color: var(--ink-muted);
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 2px dashed #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.check.tiny {
+  padding: 6px 8px;
   font-size: 14px;
 }
 
-.btn{
-  background-color: #d6976b;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  font-weight: bold;
+.grid2 {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
 }
 
-.grid2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
-
-.conversion-preview { margin-top: 6px; }
+.conversion-preview {
+  margin-top: 8px;
+  font-size: 14px;
+  padding: 8px;
+  background: #f0f9ff;
+  border-radius: 6px;
+  border: 1px solid #bae6fd;
+}
 
 .goal-chip {
-  display: flex; gap: 8px; align-items: center;
-  padding: 6px 8px; border: 1px solid var(--line);
-  border-radius: 12px; background: #fffaf3;
-}
-.goal-chip-text .tight { line-height: 1.2; }
-
-.tx-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
 }
 
-.tx-table thead th {
-  background: #fafafa;
-  font-weight: 600;
+.goal-chip-text .tight {
+  line-height: 1.2;
 }
 
-.tx-table th,
-.tx-table td {
-  border: 1px solid #e5e7eb;
-  padding: 10px 12px;
-  text-align: left;
-  vertical-align: middle;
-  white-space: nowrap;
+.error-message {
+  color: #ef4444;
+  font-size: 14px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
 }
 
-.tx-table tbody tr:hover {
-  background: #f9fafb;
+@media (max-width: 768px) {
+  .user-container {
+    padding: 16px;
+  }
+
+  .user-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .wallet-row {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .wallet-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

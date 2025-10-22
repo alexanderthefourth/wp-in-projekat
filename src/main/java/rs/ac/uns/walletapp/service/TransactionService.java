@@ -305,7 +305,7 @@ public class TransactionService {
         return transactionRepository.findByUser_Id(userId);
     }
 
-    public List<Transaction> filterTransactions(Integer username, String categoryName, BigDecimal minAmount, BigDecimal maxAmount, LocalDate date) {
+    public List<Transaction> filterTransactions(Integer username, Integer categoryName, BigDecimal minAmount, BigDecimal maxAmount, LocalDate date) {
         if (username == null && categoryName == null && minAmount == null && maxAmount == null && date == null) {
             return transactionRepository.findAll();
         }

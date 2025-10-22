@@ -90,8 +90,8 @@ public class TransactionController {
 
     @GetMapping("/all")
     public ResponseEntity<List<Transaction>> getAllTransactions(
-            @RequestParam(required = false) String username,        // Promenjeno iz userId u username
-            @RequestParam(required = false) String categoryName,    // Promenjeno iz categoryId u categoryName
+            @RequestParam(required = false) Integer username,        // Promenjeno iz userId u username
+            @RequestParam(required = false) Integer categoryName,    // Promenjeno iz categoryId u categoryName
             @RequestParam(required = false) BigDecimal minAmount,
             @RequestParam(required = false) BigDecimal maxAmount,
             @RequestParam(required = false) String date) {
