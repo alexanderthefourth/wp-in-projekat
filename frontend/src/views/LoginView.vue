@@ -1,31 +1,46 @@
 <template>
   <div class="auth-container">
-    <h2>Prijava</h2>
-    <form @submit.prevent="handleLogin">
-      <label for="username">Username:</label>
-      <input v-model="username" id="username" type="text" required />
+    <div class="auth-card">
+      <h2>Prijava</h2>
+      <form @submit.prevent="handleLogin" class="auth-form">
+        <div class="form-group">
+          <label for="username">Korisničko ime:</label>
+          <input v-model="username" id="username" type="text" required />
+        </div>
 
-      <label for="password">Password:</label>
-      <input v-model="password" id="password" type="password" required />
+        <div class="form-group">
+          <label for="password">Lozinka:</label>
+          <input v-model="password" id="password" type="password" required />
+        </div>
 
-      <button type="submit">Login</button>
-    </form>
+        <button type="submit" class="btn btn-primary">Prijavi se</button>
+      </form>
 
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="success">{{ successMessage }}</p>
+      <p class="auth-link">
+        Nemate nalog? <RouterLink to="/register">Registrujte se</RouterLink>
+      </p>
+
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import axios from "axios";
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, RouterLink } from "vue-router";
 
 const username = ref("");
 const password = ref("");
+const errorMessage = ref("");
+const successMessage = ref("");
 const router = useRouter();
 
 async function handleLogin() {
+  errorMessage.value = "";
+  successMessage.value = "";
+
   try {
     const response = await axios.post(
       "http://localhost:8080/api/users/login",
@@ -41,56 +56,86 @@ async function handleLogin() {
       return;
     }
 
-    if (user.role === "ADMIN") router.push("/registered-admin");
-    else router.push("/registered");
+    if (user.role === "ADMIN") {
+      router.push("/registered-admin");
+    } else {
+      router.push("/registered");
+    }
   } catch (error) {
-    if (error.response?.status === 401) alert("Neispravno korisničko ime ili lozinka!");
-    else alert("Greška prilikom prijavljivanja.");
+    if (error.response?.status === 401) {
+      errorMessage.value = "Neispravno korisničko ime ili lozinka!";
+    } else {
+      errorMessage.value = "Greška prilikom prijavljivanja.";
+    }
   }
 }
 </script>
 
 <style scoped>
 .auth-container {
-  width: 340px;
-  margin: 80px auto;
-  background: #f9f9f9;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
+
+.auth-card {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
 h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  color: #1f2937;
+  font-size: 28px;
+  font-weight: 700;
 }
-form {
+
+.auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
-input {
-  padding: 8px;
-  border: 1px solid #ccc;
+
+.auth-link {
+  text-align: center;
+  margin-top: 20px;
+  color: #6b7280;
+}
+
+.auth-link a {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
+
+.error-message {
+  color: #ef4444;
+  text-align: center;
+  margin-top: 16px;
+  padding: 12px;
+  background: #fef2f2;
   border-radius: 8px;
+  border: 1px solid #fecaca;
 }
-button {
-  padding: 10px;
-  background-color: #2e7d32;
-  color: white;
-  border: none;
+
+.success-message {
+  color: #10b981;
+  text-align: center;
+  margin-top: 16px;
+  padding: 12px;
+  background: #f0fdf4;
   border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-}
-button:hover {
-  background-color: #1b5e20;
-}
-.error {
-  color: #c62828;
-  margin-top: 10px;
-}
-.success {
-  color: #2e7d32;
-  margin-top: 10px;
+  border: 1px solid #bbf7d0;
 }
 </style>
